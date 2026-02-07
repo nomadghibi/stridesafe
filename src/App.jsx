@@ -1903,7 +1903,10 @@ function useHashRoute() {
     function handleChange() {
       setRoute(getHash());
       if (typeof window !== "undefined") {
-        window.scrollTo(0, 0);
+        const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+        const isMobile = window.matchMedia?.("(max-width: 768px)")?.matches;
+        const behavior = prefersReducedMotion || isMobile ? "auto" : "smooth";
+        window.scrollTo({ top: 0, left: 0, behavior });
       }
     }
     window.addEventListener("hashchange", handleChange);
@@ -1938,6 +1941,48 @@ function usePageMeta(locale, route) {
             description:
               "Inicia sesiones clinicas, carga video, captura pruebas TUG y balance, y genera reportes de riesgo de caidas listos para documentacion.",
           },
+          {
+            match: (value) => value.startsWith("/privacy"),
+            title: "Privacidad de datos | StrideSafe",
+            description:
+              "Conoce como StrideSafe protege datos clinicos con minimizacion, acceso por roles y auditoria.",
+          },
+          {
+            match: (value) => value.startsWith("/compatibility"),
+            title: "Compatibilidad | StrideSafe",
+            description:
+              "Requisitos tecnicos y dispositivos compatibles para usar StrideSafe.",
+          },
+          {
+            match: (value) => value.startsWith("/support"),
+            title: "Soporte | StrideSafe",
+            description:
+              "Contacta soporte y conoce tiempos de respuesta para pilotos StrideSafe.",
+          },
+          {
+            match: (value) => value.startsWith("/faq"),
+            title: "Preguntas frecuentes | StrideSafe",
+            description:
+              "Respuestas rapidas sobre evaluaciones, reportes y cumplimiento.",
+          },
+          {
+            match: (value) => value.startsWith("/imprint"),
+            title: "Aviso legal | StrideSafe",
+            description:
+              "Informacion corporativa y contacto de StrideSafe.",
+          },
+          {
+            match: (value) => value.startsWith("/terms"),
+            title: "Terminos | StrideSafe",
+            description:
+              "Resumen de condiciones de uso de la plataforma.",
+          },
+          {
+            match: (value) => value.startsWith("/cookies"),
+            title: "Politica de cookies | StrideSafe",
+            description:
+              "Uso de almacenamiento esencial y opciones de control.",
+          },
         ]
       : [
           {
@@ -1957,6 +2002,48 @@ function usePageMeta(locale, route) {
             title: "Clinician Portal | StrideSafe",
             description:
               "Log in, upload video, capture TUG and balance scores, and generate fall-risk reports in the StrideSafe clinician portal.",
+          },
+          {
+            match: (value) => value.startsWith("/privacy"),
+            title: "Data Privacy | StrideSafe",
+            description:
+              "How StrideSafe protects data with minimization, role-based access, and audit logging.",
+          },
+          {
+            match: (value) => value.startsWith("/compatibility"),
+            title: "Compatibility | StrideSafe",
+            description:
+              "Supported browsers, devices, and video requirements for StrideSafe.",
+          },
+          {
+            match: (value) => value.startsWith("/support"),
+            title: "Support | StrideSafe",
+            description:
+              "Contact support and response expectations for StrideSafe pilots.",
+          },
+          {
+            match: (value) => value.startsWith("/faq"),
+            title: "FAQ | StrideSafe",
+            description:
+              "Quick answers about assessments, reports, and compliance.",
+          },
+          {
+            match: (value) => value.startsWith("/imprint"),
+            title: "Imprint | StrideSafe",
+            description:
+              "Corporate and contact information for StrideSafe.",
+          },
+          {
+            match: (value) => value.startsWith("/terms"),
+            title: "Terms | StrideSafe",
+            description:
+              "Summary of platform usage expectations.",
+          },
+          {
+            match: (value) => value.startsWith("/cookies"),
+            title: "Cookie Policy | StrideSafe",
+            description:
+              "Essential storage and analytics usage for StrideSafe.",
           },
         ];
 
@@ -2045,15 +2132,7 @@ function useStoredAuth() {
 
 function SiteHeader({ locale, buildHrefFor, currentPath }) {
   const { user, setToken, setUser } = useStoredAuth();
-  const [activeLanguages, setActiveLanguages] = useState({
-    en: true,
-    es: false,
-  });
   const isAuthed = Boolean(user);
-
-  useEffect(() => {
-    setActiveLanguages({ en: locale === "en", es: locale === "es" });
-  }, [locale]);
 
   const navCopy = locale === "es"
     ? {
@@ -2100,10 +2179,19 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
       };
 
   const toggleLanguage = (code) => {
-    setActiveLanguages({ en: code === "en", es: code === "es" });
     if (code !== locale) {
       window.location.hash = buildHrefFor(currentPath, code);
     }
+  };
+
+  const handleNavScroll = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const isMobile = window.matchMedia?.("(max-width: 768px)")?.matches;
+    const behavior = prefersReducedMotion || isMobile ? "auto" : "smooth";
+    window.scrollTo({ top: 0, left: 0, behavior });
   };
 
   const handleLogout = () => {
@@ -2114,24 +2202,32 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
   return (
     <header className="site-header">
       <div className="container header-inner">
-        <div className="brand">
+        <a href={buildHrefFor("/")} className="brand" onClick={handleNavScroll}>
           <span className="brand-mark"><AppMark /></span>
           <div>
             <span className="brand-name">StrideSafe</span>
             <span className="brand-sub">{navCopy.brandSub}</span>
           </div>
-        </div>
+        </a>
         <nav className="site-nav" aria-label="Primary">
-          <a href={buildHrefFor("/")} className="nav-link">{navCopy.home}</a>
+          <a
+            href={buildHrefFor("/")}
+            className="nav-link nav-link-icon"
+            onClick={handleNavScroll}
+            aria-label={navCopy.home}
+            title={navCopy.home}
+          >
+            <Icon name="home" />
+          </a>
           <div className="nav-dropdown">
             <button className="nav-link nav-button" type="button" aria-haspopup="true">
               {navCopy.products}
             </button>
             <div className="dropdown-menu">
-              <a href={buildHrefFor("/stridesafe-home")}>{navCopy.productHome}</a>
-              <a href={buildHrefFor("/gait-lab")}>{navCopy.productGait}</a>
-              <a href={buildHrefFor("/pt-workflow")}>{navCopy.productPt}</a>
-              <a href={buildHrefFor("/admin-review")}>{navCopy.productAdmin}</a>
+              <a href={buildHrefFor("/stridesafe-home")} onClick={handleNavScroll}>{navCopy.productHome}</a>
+              <a href={buildHrefFor("/gait-lab")} onClick={handleNavScroll}>{navCopy.productGait}</a>
+              <a href={buildHrefFor("/pt-workflow")} onClick={handleNavScroll}>{navCopy.productPt}</a>
+              <a href={buildHrefFor("/admin-review")} onClick={handleNavScroll}>{navCopy.productAdmin}</a>
             </div>
           </div>
           <div className="nav-dropdown">
@@ -2139,13 +2235,13 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
               {navCopy.solutions}
             </button>
             <div className="dropdown-menu">
-              <a href={buildHrefFor("/solutions/primary-care")}>{navCopy.solutionPrimary}</a>
-              <a href={buildHrefFor("/solutions/senior-living")}>{navCopy.solutionSenior}</a>
-              <a href={buildHrefFor("/solutions/home-health")}>{navCopy.solutionHome}</a>
-              <a href={buildHrefFor("/solutions/orthopedics")}>{navCopy.solutionOrtho}</a>
+              <a href={buildHrefFor("/solutions/primary-care")} onClick={handleNavScroll}>{navCopy.solutionPrimary}</a>
+              <a href={buildHrefFor("/solutions/senior-living")} onClick={handleNavScroll}>{navCopy.solutionSenior}</a>
+              <a href={buildHrefFor("/solutions/home-health")} onClick={handleNavScroll}>{navCopy.solutionHome}</a>
+              <a href={buildHrefFor("/solutions/orthopedics")} onClick={handleNavScroll}>{navCopy.solutionOrtho}</a>
             </div>
           </div>
-          <a href={buildHrefFor("/about")} className="nav-link">{navCopy.about}</a>
+          <a href={buildHrefFor("/about")} className="nav-link" onClick={handleNavScroll}>{navCopy.about}</a>
           <div className="nav-dropdown">
             <button className="nav-link nav-button" type="button" aria-haspopup="true">
               {navCopy.portal}
@@ -2153,32 +2249,47 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
             <div className="dropdown-menu">
               {isAuthed ? (
                 <>
-                  <a href={buildHrefFor("/portal")}>{navCopy.myPortal}</a>
-                  <a href={buildHrefFor("/portal")} onClick={handleLogout}>{navCopy.logout}</a>
+                  <a href={buildHrefFor("/portal")} onClick={handleNavScroll}>{navCopy.myPortal}</a>
+                  <a
+                    href={buildHrefFor("/portal")}
+                    onClick={() => {
+                      handleLogout();
+                      handleNavScroll();
+                    }}
+                  >
+                    {navCopy.logout}
+                  </a>
                 </>
               ) : (
                 <>
-                  <a href={buildHrefFor("/portal?mode=login")}>{navCopy.login}</a>
-                  <a href={buildHrefFor("/portal?mode=signup")}>{navCopy.signup}</a>
+                  <a href={buildHrefFor("/portal?mode=login")} onClick={handleNavScroll}>{navCopy.login}</a>
+                  <a href={buildHrefFor("/portal?mode=signup")} onClick={handleNavScroll}>{navCopy.signup}</a>
                 </>
               )}
             </div>
           </div>
-          <div className="language-tags" role="group" aria-label="Languages">
-            {[
-              { code: "en", label: "English" },
-              { code: "es", label: "Espanol" },
-            ].map((lang) => (
+          <div className="nav-dropdown">
+            <button className="nav-link nav-button" type="button" aria-haspopup="true">
+              English
+            </button>
+            <div className="dropdown-menu">
               <button
-                key={lang.code}
-                className={`language-tag ${activeLanguages[lang.code] ? "active" : ""}`}
                 type="button"
-                onClick={() => toggleLanguage(lang.code)}
-                aria-pressed={activeLanguages[lang.code]}
+                className={`lang-option ${locale !== "es" ? "active" : ""}`}
+                onClick={() => toggleLanguage("en")}
+                aria-pressed={locale !== "es"}
               >
-                {lang.label}
+                English
               </button>
-            ))}
+              <button
+                type="button"
+                className={`lang-option ${locale === "es" ? "active" : ""}`}
+                onClick={() => toggleLanguage("es")}
+                aria-pressed={locale === "es"}
+              >
+                Español
+              </button>
+            </div>
           </div>
           <button className="button primary" type="button">{navCopy.requestDemo}</button>
         </nav>
@@ -2245,21 +2356,19 @@ function SiteFooter({ locale, buildHrefFor }) {
           <p>{footerCopy.phoneLabel}: (321) 953-5199</p>
           <p>Email: hello@stridesafe.com</p>
         </div>
-          <div>
-            <h4>{footerCopy.products}</h4>
-            <a href={buildHrefFor("/stridesafe-home")}>{footerCopy.productHome}</a>
-            <a href={buildHrefFor("/gait-lab")}>{footerCopy.productGait}</a>
-            <a href={buildHrefFor("/pt-workflow")}>{footerCopy.productPt}</a>
-            <a href={buildHrefFor("/admin-review")}>{footerCopy.productAdmin}</a>
-            <a href="#">StrideSafe Clinic</a>
-            <a href="#">StrideSafe Motion Lab</a>
-          </div>
+        <div>
+          <h4>{footerCopy.products}</h4>
+          <a href={buildHrefFor("/stridesafe-home")}>{footerCopy.productHome}</a>
+          <a href={buildHrefFor("/gait-lab")}>{footerCopy.productGait}</a>
+          <a href={buildHrefFor("/pt-workflow")}>{footerCopy.productPt}</a>
+          <a href={buildHrefFor("/admin-review")}>{footerCopy.productAdmin}</a>
+        </div>
         <div>
           <h4>{footerCopy.resources}</h4>
-          <a href="#">{footerCopy.dataPrivacy}</a>
-          <a href="#">{footerCopy.compatibility}</a>
-          <a href="#">{footerCopy.support}</a>
-          <a href="#">{footerCopy.faq}</a>
+          <a href={buildHrefFor("/privacy")}>{footerCopy.dataPrivacy}</a>
+          <a href={buildHrefFor("/compatibility")}>{footerCopy.compatibility}</a>
+          <a href={buildHrefFor("/support")}>{footerCopy.support}</a>
+          <a href={buildHrefFor("/faq")}>{footerCopy.faq}</a>
         </div>
         <div>
           <h4>{footerCopy.security}</h4>
@@ -2273,9 +2382,9 @@ function SiteFooter({ locale, buildHrefFor }) {
       <div className="footer-bottom">
         <p>© 2026 StrideSafe Health, Inc. {footerCopy.rights}</p>
         <div className="footer-links">
-          <a href="#">{footerCopy.imprint}</a>
-          <a href="#">{footerCopy.terms}</a>
-          <a href="#">{footerCopy.cookies}</a>
+          <a href={buildHrefFor("/imprint")}>{footerCopy.imprint}</a>
+          <a href={buildHrefFor("/terms")}>{footerCopy.terms}</a>
+          <a href={buildHrefFor("/cookies")}>{footerCopy.cookies}</a>
         </div>
       </div>
     </footer>
@@ -4407,6 +4516,43 @@ function AboutPage({ locale, buildHrefFor, currentPath }) {
   );
 }
 
+function InfoPage({ pageKey, locale, buildHrefFor, currentPath }) {
+  const pages = locale === "es" ? infoPagesEs : infoPagesEn;
+  const page = pages[pageKey];
+  if (!page) {
+    return null;
+  }
+
+  return (
+    <Layout locale={locale} buildHrefFor={buildHrefFor} currentPath={currentPath}>
+      <section className="section section-muted">
+        <div className="container">
+          <div className="section-heading">
+            <h2>{page.title}</h2>
+            <p>{page.lead}</p>
+          </div>
+          <div className="info-sections">
+            {page.sections.map((section) => (
+              <div key={section.title} className="info-card">
+                <h3>{section.title}</h3>
+                <p>{section.body}</p>
+                {section.bullets && section.bullets.length > 0 ? (
+                  <ul>
+                    {section.bullets.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            ))}
+          </div>
+          {page.note ? <p className="info-note">{page.note}</p> : null}
+        </div>
+      </section>
+    </Layout>
+  );
+}
+
 function PortalPage({ locale, buildHrefFor, currentPath }) {
   const isEs = locale === "es";
   const copy = isEs
@@ -4452,6 +4598,23 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
         navExports: "Exportaciones",
         navAudit: "Auditoria",
         navQa: "QA de piloto",
+        tooltipOverview: "Resumen operativo en un vistazo.",
+        tooltipNotifications: "Alertas de evaluaciones, reportes y seguimiento.",
+        tooltipOutcomes: "Tendencias de riesgo y progreso clinico.",
+        tooltipWorkflow: "Cola con SLA y tareas pendientes.",
+        tooltipPtWorkflow: "Flujo PT y acciones clinicas.",
+        tooltipResidents: "Buscar, agregar y ubicar residentes.",
+        tooltipAssessments: "Iniciar y puntuar evaluaciones de riesgo.",
+        tooltipIncidents: "Eventos de caidas y checklist post-caida.",
+        tooltipUploads: "Subir y validar videos de marcha.",
+        tooltipScores: "Registrar o sincronizar puntajes TUG/Chair/Balance.",
+        tooltipReports: "Generar y finalizar reportes listos para auditoria.",
+        tooltipQa: "Verificar calidad del piloto.",
+        tooltipUsers: "Gestionar usuarios y permisos.",
+        tooltipFacilities: "Configurar protocolos y defaults.",
+        tooltipUnits: "Organizar edificios, pisos y unidades.",
+        tooltipExports: "Exportaciones seguras y programadas.",
+        tooltipAudit: "Historial inmutable de actividad.",
         onboardingTitle: "Checklist de onboarding",
         onboardingBody: "Completa estos pasos para iniciar el piloto.",
         onboardingProgressLabel: "Progreso",
@@ -5120,6 +5283,23 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
         navExports: "Exports",
         navAudit: "Audit log",
         navQa: "Pilot QA",
+        tooltipOverview: "Your operational snapshot in one glance.",
+        tooltipNotifications: "Due, overdue, and report-ready alerts.",
+        tooltipOutcomes: "Track risk reduction and progress trends.",
+        tooltipWorkflow: "SLA-driven task queue for the team.",
+        tooltipPtWorkflow: "PT workflow progress and clinical actions.",
+        tooltipResidents: "Search, add, and locate residents quickly.",
+        tooltipAssessments: "Start and score fall-risk assessments.",
+        tooltipIncidents: "Post-fall events and checklist tracking.",
+        tooltipUploads: "Upload validated gait videos.",
+        tooltipScores: "Enter or sync TUG/Chair/Balance scores.",
+        tooltipReports: "Generate and finalize audit-ready reports.",
+        tooltipQa: "Verify assessment completeness.",
+        tooltipUsers: "Manage clinicians and access roles.",
+        tooltipFacilities: "Set protocols and pilot defaults.",
+        tooltipUnits: "Organize buildings/floors/units.",
+        tooltipExports: "Secure exports and scheduled delivery.",
+        tooltipAudit: "Immutable activity history.",
         onboardingTitle: "Onboarding checklist",
         onboardingBody: "Complete these steps to launch the pilot.",
         onboardingProgressLabel: "Progress",
@@ -6473,23 +6653,23 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
 
   const isAdmin = user?.role === "admin";
   const portalNavItems = [
-    { id: "overview", label: copy.navOverview, icon: "insights" },
-    { id: "notifications", label: copy.navNotifications, icon: "bell" },
-    { id: "outcomes", label: copy.navOutcomes, icon: "trend" },
-    { id: "workflow", label: copy.navWorkflow, icon: "plan" },
-    { id: "pt-workflow", label: copy.navPtWorkflow, icon: "target" },
-    { id: "residents", label: copy.navResidents, icon: "badge" },
-    { id: "assessments", label: copy.navAssessments, icon: "plan" },
-    { id: "incidents", label: copy.navIncidents, icon: "heart" },
-    { id: "uploads", label: copy.navUploads, icon: "scan" },
-    { id: "scores", label: copy.navScores, icon: "target" },
-    { id: "reports", label: copy.navReports, icon: "doc" },
-    { id: "qa", label: copy.navQa, icon: "check" },
-    { id: "users", label: copy.navUsers, icon: "shield", adminOnly: true },
-    { id: "facilities", label: copy.navFacilities, icon: "home", adminOnly: true },
-    { id: "units", label: copy.navUnits, icon: "grid", adminOnly: true },
-    { id: "exports", label: copy.navExports, icon: "grid", adminOnly: true },
-    { id: "audit", label: copy.navAudit, icon: "trend", adminOnly: true },
+    { id: "overview", label: copy.navOverview, icon: "insights", tooltip: copy.tooltipOverview },
+    { id: "notifications", label: copy.navNotifications, icon: "bell", tooltip: copy.tooltipNotifications },
+    { id: "outcomes", label: copy.navOutcomes, icon: "trend", tooltip: copy.tooltipOutcomes },
+    { id: "workflow", label: copy.navWorkflow, icon: "plan", tooltip: copy.tooltipWorkflow },
+    { id: "pt-workflow", label: copy.navPtWorkflow, icon: "target", tooltip: copy.tooltipPtWorkflow },
+    { id: "residents", label: copy.navResidents, icon: "badge", tooltip: copy.tooltipResidents },
+    { id: "assessments", label: copy.navAssessments, icon: "plan", tooltip: copy.tooltipAssessments },
+    { id: "incidents", label: copy.navIncidents, icon: "heart", tooltip: copy.tooltipIncidents },
+    { id: "uploads", label: copy.navUploads, icon: "scan", tooltip: copy.tooltipUploads },
+    { id: "scores", label: copy.navScores, icon: "target", tooltip: copy.tooltipScores },
+    { id: "reports", label: copy.navReports, icon: "doc", tooltip: copy.tooltipReports },
+    { id: "qa", label: copy.navQa, icon: "check", tooltip: copy.tooltipQa },
+    { id: "users", label: copy.navUsers, icon: "shield", adminOnly: true, tooltip: copy.tooltipUsers },
+    { id: "facilities", label: copy.navFacilities, icon: "home", adminOnly: true, tooltip: copy.tooltipFacilities },
+    { id: "units", label: copy.navUnits, icon: "grid", adminOnly: true, tooltip: copy.tooltipUnits },
+    { id: "exports", label: copy.navExports, icon: "grid", adminOnly: true, tooltip: copy.tooltipExports },
+    { id: "audit", label: copy.navAudit, icon: "trend", adminOnly: true, tooltip: copy.tooltipAudit },
   ];
 
   const availableNavItems = portalNavItems.filter((item) => !item.adminOnly || isAdmin);
@@ -9933,6 +10113,11 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
                       {item.label}
                       {item.id === "notifications" && notificationUnreadCount > 0 ? (
                         <span className="portal-nav-badge">{notificationUnreadCount}</span>
+                      ) : null}
+                      {item.tooltip ? (
+                        <span className="portal-nav-tooltip" role="tooltip">
+                          {item.tooltip}
+                        </span>
                       ) : null}
                     </button>
                   ))}
@@ -15663,12 +15848,312 @@ const solutionsContentEs = {
   },
 };
 
+const infoPagesEn = {
+  privacy: {
+    title: "Data privacy",
+    lead: "StrideSafe is built for US healthcare with data minimization and role-based access.",
+    sections: [
+      {
+        title: "What we collect",
+        body: "We collect the minimum data required to run assessments and generate reports.",
+        bullets: [
+          "Account and facility contact details",
+          "Assessment scores, risk tier, and reports",
+          "Optional gait video for analysis",
+        ],
+      },
+      {
+        title: "How we protect it",
+        body: "Security controls are designed for audit-ready healthcare operations.",
+        bullets: [
+          "Role-based access and facility isolation",
+          "Audit logs for key actions",
+          "Encryption in transit and at rest",
+        ],
+      },
+      {
+        title: "Your controls",
+        body: "Facilities control access, exports, and retention workflows.",
+        bullets: [
+          "Export data when needed",
+          "Assign users and revoke access",
+          "Contact support for data requests",
+        ],
+      },
+    ],
+    note: "For security documentation or data agreements, contact hello@stridesafe.com.",
+  },
+  compatibility: {
+    title: "Compatibility",
+    lead: "StrideSafe works on modern browsers and standard clinical devices.",
+    sections: [
+      {
+        title: "Supported browsers",
+        body: "Use the latest versions of Chrome, Edge, Safari, or Firefox.",
+      },
+      {
+        title: "Devices",
+        body: "Desktop and tablet experiences are optimized, with mobile-friendly views.",
+        bullets: ["Mac + Windows", "iPadOS + iOS", "Android tablets/phones"],
+      },
+      {
+        title: "Video requirements",
+        body: "Uploads accept MP4 or QuickTime files with clear lighting and stable framing.",
+        bullets: ["Minimum 640px width", "Recommended 720p or higher", "Good lighting and steady camera"],
+      },
+    ],
+  },
+  support: {
+    title: "Support",
+    lead: "We help teams onboard quickly and keep workflows running smoothly.",
+    sections: [
+      {
+        title: "Contact",
+        body: "Reach our team at hello@stridesafe.com or (321) 953-5199.",
+      },
+      {
+        title: "Response targets",
+        body: "We aim to respond within 1 business day for pilot customers.",
+      },
+      {
+        title: "Implementation help",
+        body: "We assist with workflow setup, training, and reporting templates.",
+      },
+    ],
+  },
+  faq: {
+    title: "Frequently asked questions",
+    lead: "Quick answers to common questions about StrideSafe.",
+    sections: [
+      {
+        title: "Do we need special hardware?",
+        body: "No. StrideSafe works with standard smartphones and tablets.",
+      },
+      {
+        title: "How long does an assessment take?",
+        body: "Most assessments complete in 2-3 minutes including video upload.",
+      },
+      {
+        title: "Is StrideSafe HIPAA aligned?",
+        body: "Yes. We support HIPAA-aligned workflows with access control and audit logging.",
+      },
+      {
+        title: "Can we export data?",
+        body: "Yes. Admins can export CSV reports or schedule secure deliveries.",
+      },
+    ],
+  },
+  imprint: {
+    title: "Imprint",
+    lead: "Corporate information for StrideSafe.",
+    sections: [
+      {
+        title: "Company",
+        body: "StrideSafe is a division of Techeze AI, a Florida US company.",
+        bullets: [
+          "602 Hurst Rd, Suite #1, Palm Bay, FL 32907",
+          "Phone: (321) 953-5199",
+          "Email: hello@stridesafe.com",
+        ],
+      },
+    ],
+  },
+  terms: {
+    title: "Terms",
+    lead: "Summary of platform usage expectations.",
+    sections: [
+      {
+        title: "Clinical responsibility",
+        body: "StrideSafe supports clinical workflows but does not replace professional judgment.",
+      },
+      {
+        title: "Availability",
+        body: "We provide best-effort uptime and notify customers of planned maintenance.",
+      },
+      {
+        title: "Updates",
+        body: "Features may evolve based on regulatory and clinical requirements.",
+      },
+    ],
+    note: "For full terms or pilot agreements, contact hello@stridesafe.com.",
+  },
+  cookies: {
+    title: "Cookie policy",
+    lead: "We use minimal storage to keep sessions secure and improve usability.",
+    sections: [
+      {
+        title: "Essential storage",
+        body: "We use local storage for authentication and onboarding state.",
+      },
+      {
+        title: "Analytics",
+        body: "Analytics tools may be enabled for pilots to improve workflows.",
+      },
+      {
+        title: "Your control",
+        body: "You can clear browser storage at any time.",
+      },
+    ],
+  },
+};
+
+const infoPagesEs = {
+  privacy: {
+    title: "Privacidad de datos",
+    lead: "StrideSafe esta disenado para EE.UU. con minimizacion de datos y acceso por roles.",
+    sections: [
+      {
+        title: "Que recopilamos",
+        body: "Recopilamos solo lo necesario para evaluar y generar reportes.",
+        bullets: [
+          "Datos de contacto de cuenta e instalacion",
+          "Puntajes, riesgo y reportes",
+          "Video opcional para analisis",
+        ],
+      },
+      {
+        title: "Como lo protegemos",
+        body: "Controles listos para auditoria y operaciones clinicas.",
+        bullets: [
+          "Acceso por roles y aislamiento por instalacion",
+          "Registros de auditoria",
+          "Cifrado en transito y en reposo",
+        ],
+      },
+      {
+        title: "Tus controles",
+        body: "Las instalaciones controlan acceso, exportaciones y retencion.",
+        bullets: [
+          "Exporta datos cuando sea necesario",
+          "Gestiona usuarios y revoca accesos",
+          "Contacta soporte para solicitudes de datos",
+        ],
+      },
+    ],
+    note: "Para documentos de seguridad, escribe a hello@stridesafe.com.",
+  },
+  compatibility: {
+    title: "Compatibilidad",
+    lead: "StrideSafe funciona en navegadores modernos y dispositivos clinicos.",
+    sections: [
+      {
+        title: "Navegadores compatibles",
+        body: "Usa la ultima version de Chrome, Edge, Safari o Firefox.",
+      },
+      {
+        title: "Dispositivos",
+        body: "Optimo en escritorio y tablet, con vistas moviles.",
+        bullets: ["Mac + Windows", "iPadOS + iOS", "Tablets y telefonos Android"],
+      },
+      {
+        title: "Requisitos de video",
+        body: "Acepta MP4 o QuickTime con buena luz y camara estable.",
+        bullets: ["Minimo 640px de ancho", "Recomendado 720p o mas", "Iluminacion adecuada"],
+      },
+    ],
+  },
+  support: {
+    title: "Soporte",
+    lead: "Acompañamos onboarding y soporte continuo.",
+    sections: [
+      {
+        title: "Contacto",
+        body: "Escribe a hello@stridesafe.com o llama al (321) 953-5199.",
+      },
+      {
+        title: "Tiempo de respuesta",
+        body: "Respondemos en 1 dia habil para clientes piloto.",
+      },
+      {
+        title: "Ayuda de implementacion",
+        body: "Apoyamos configuracion de flujos, capacitacion y reportes.",
+      },
+    ],
+  },
+  faq: {
+    title: "Preguntas frecuentes",
+    lead: "Respuestas rapidas para equipos clinicos.",
+    sections: [
+      {
+        title: "Necesitamos hardware especial?",
+        body: "No. StrideSafe funciona con telefono o tablet.",
+      },
+      {
+        title: "Cuanto dura una evaluacion?",
+        body: "Normalmente 2-3 minutos incluyendo carga de video.",
+      },
+      {
+        title: "StrideSafe esta alineado con HIPAA?",
+        body: "Si. Incluye acceso por roles y auditoria.",
+      },
+      {
+        title: "Podemos exportar datos?",
+        body: "Si. Admins pueden exportar CSV o programar envios.",
+      },
+    ],
+  },
+  imprint: {
+    title: "Aviso legal",
+    lead: "Informacion corporativa de StrideSafe.",
+    sections: [
+      {
+        title: "Empresa",
+        body: "StrideSafe es una division de Techeze AI, empresa de Florida.",
+        bullets: [
+          "602 Hurst Rd, Suite #1, Palm Bay, FL 32907",
+          "Telefono: (321) 953-5199",
+          "Email: hello@stridesafe.com",
+        ],
+      },
+    ],
+  },
+  terms: {
+    title: "Terminos",
+    lead: "Resumen de uso de la plataforma.",
+    sections: [
+      {
+        title: "Responsabilidad clinica",
+        body: "StrideSafe apoya el flujo clinico pero no reemplaza el juicio profesional.",
+      },
+      {
+        title: "Disponibilidad",
+        body: "Buscamos alta disponibilidad y avisamos mantenimientos.",
+      },
+      {
+        title: "Actualizaciones",
+        body: "Las funciones pueden cambiar por requisitos clinicos o regulatorios.",
+      },
+    ],
+    note: "Para terminos completos, escribe a hello@stridesafe.com.",
+  },
+  cookies: {
+    title: "Politica de cookies",
+    lead: "Usamos almacenamiento minimo para seguridad y usabilidad.",
+    sections: [
+      {
+        title: "Almacenamiento esencial",
+        body: "Usamos local storage para autenticacion y onboarding.",
+      },
+      {
+        title: "Analitica",
+        body: "La analitica puede habilitarse para mejorar flujos.",
+      },
+      {
+        title: "Tu control",
+        body: "Puedes borrar el almacenamiento del navegador cuando quieras.",
+      },
+    ],
+  },
+};
+
 export default function App() {
   const route = useHashRoute();
   const locale = getLocaleFromRoute(route);
   const normalizedRoute = stripLocaleFromRoute(route, locale);
   const buildHrefFor = (path, targetLocale = locale) => buildHref(path, targetLocale);
   const solutions = locale === "es" ? solutionsContentEs : solutionsContent;
+  const infoPages = locale === "es" ? infoPagesEs : infoPagesEn;
+  const infoPageKey = normalizedRoute.replace(/^\//, "").split("/")[0];
 
   usePageMeta(locale, normalizedRoute);
 
@@ -15759,6 +16244,17 @@ export default function App() {
     return (
       <SolutionsPage
         {...solutions.orthopedics}
+        locale={locale}
+        buildHrefFor={buildHrefFor}
+        currentPath={normalizedRoute}
+      />
+    );
+  }
+
+  if (infoPages[infoPageKey]) {
+    return (
+      <InfoPage
+        pageKey={infoPageKey}
         locale={locale}
         buildHrefFor={buildHrefFor}
         currentPath={normalizedRoute}
