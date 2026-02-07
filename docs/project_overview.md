@@ -98,3 +98,16 @@ npm run migrate
 npm run seed
 npm run dev
 ```
+
+### Migration Checklist (When Tests Fail)
+- [ ] Ensure Postgres is running and `DATABASE_URL` is set.
+- [ ] Run all migrations: `npm run migrate` (server folder).
+- [ ] If schema errors mention missing columns/tables, re-run the latest migrations:
+  - `db/migrations/0014_add_assessment_defaults.sql`
+  - `db/migrations/0015_add_assessment_qa.sql`
+  - `db/migrations/0016_add_pt_fields.sql`
+  - `db/migrations/0017_add_report_type.sql`
+  - `db/migrations/0018_add_resident_location.sql`
+  - `db/migrations/0019_add_fall_events.sql`
+  - `db/migrations/0020_add_fall_checklist.sql`
+  - `db/migrations/0021_add_facility_units.sql`
