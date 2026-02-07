@@ -473,7 +473,7 @@ const landingPillars = [
     title: "Objective gait analysis in minutes",
     body: "Turn a smartphone into a motion capture lab with consistent, repeatable results.",
     path: "/gait-lab",
-    linkLabel: "See Gait Lab",
+    linkLabel: "See MotionLab",
   },
   {
     icon: "shield",
@@ -497,7 +497,7 @@ const landingPillarsEs = [
     title: "Analisis objetivo de la marcha en minutos",
     body: "Convierte un smartphone en un laboratorio de captura de movimiento con resultados consistentes.",
     path: "/gait-lab",
-    linkLabel: "Ver Gait Lab",
+    linkLabel: "Ver MotionLab",
   },
   {
     icon: "shield",
@@ -1696,17 +1696,17 @@ const gaitProgressPointsEs = [
 
 const gaitFaq = [
   {
-    question: "What does StrideSafe Gait Lab cost?",
+    question: "What does StrideSafe MotionLab cost?",
     answer:
       "We tailor pricing to your use case. Costs include setup for app deployment or integration plus licensing.",
   },
   {
     question: "How does it differ from open-source tools?",
     answer:
-      "StrideSafe Gait Lab delivers real-time 3D pose tracking, multi-person detection, validated gait parameters, range-of-motion analysis, and clinical documentation support.",
+      "StrideSafe MotionLab delivers real-time 3D pose tracking, multi-person detection, validated gait parameters, range-of-motion analysis, and clinical documentation support.",
   },
   {
-    question: "Who is StrideSafe Gait Lab designed for?",
+    question: "Who is StrideSafe MotionLab designed for?",
     answer:
       "Clinicians, therapists, researchers, orthopedists, and performance teams who need validated movement analysis without traditional gait lab hardware.",
   },
@@ -1714,7 +1714,7 @@ const gaitFaq = [
 
 const gaitFaqEs = [
   {
-    question: "Cuanto cuesta StrideSafe Gait Lab?",
+    question: "Cuanto cuesta StrideSafe MotionLab?",
     answer:
       "Ajustamos el precio segun el caso. Incluye implementacion, integracion y licencias.",
   },
@@ -1724,7 +1724,7 @@ const gaitFaqEs = [
       "Entrega seguimiento 3D en tiempo real, deteccion multi-persona, parametros validados y soporte clinico.",
   },
   {
-    question: "Para quien esta disenado StrideSafe Gait Lab?",
+    question: "Para quien esta disenado StrideSafe MotionLab?",
     answer:
       "Para clinicos, terapeutas, investigadores y equipos que requieren analisis validado sin hardware especializado.",
   },
@@ -2039,7 +2039,7 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
         portal: "Portal clinico",
         requestDemo: "Solicitar demo",
         productHome: "StrideSafe Home",
-        productGait: "StrideSafe Gait Lab",
+        productGait: "StrideSafe MotionLab",
         productPt: "Flujo PT",
         productAdmin: "Consola Admin",
         solutionPrimary: "Atencion primaria",
@@ -2056,7 +2056,7 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
         portal: "Portal",
         requestDemo: "Request a Demo",
         productHome: "StrideSafe Home",
-        productGait: "StrideSafe Gait Lab",
+        productGait: "StrideSafe MotionLab",
         productPt: "PT Workflow",
         productAdmin: "Admin Review Console",
         solutionPrimary: "Primary Care",
@@ -2149,7 +2149,7 @@ function SiteFooter({ locale, buildHrefFor }) {
         rights: "Todos los derechos reservados.",
         phoneLabel: "Telefono",
         productHome: "StrideSafe Home",
-        productGait: "StrideSafe Gait Lab",
+        productGait: "StrideSafe MotionLab",
         productPt: "Flujo PT",
         productAdmin: "Consola Admin",
       }
@@ -2168,7 +2168,7 @@ function SiteFooter({ locale, buildHrefFor }) {
         rights: "All Rights reserved.",
         phoneLabel: "Phone",
         productHome: "StrideSafe Home",
-        productGait: "StrideSafe Gait Lab",
+        productGait: "StrideSafe MotionLab",
         productPt: "PT Workflow",
         productAdmin: "Admin Review Console",
       };
@@ -2962,7 +2962,7 @@ function GaitLabPage({ locale, buildHrefFor, currentPath }) {
   const copy = isEs
     ? {
         eyebrow: "Analisis clinico de marcha via smartphone",
-        heading: "StrideSafe Gait Lab - el laboratorio de marcha en tu bolsillo",
+        heading: "StrideSafe MotionLab - el laboratorio de marcha en tu bolsillo",
         lead:
           "Analisis de movimiento con IA para clinicas, terapia e investigacion. Captura datos objetivos en minutos.",
         ctaPrimary: "Solicitar demo",
@@ -2974,14 +2974,14 @@ function GaitLabPage({ locale, buildHrefFor, currentPath }) {
         phoneTracking: "Seguimiento de progreso",
         phoneNext: "Proxima revision",
         phoneNextValue: "2 semanas",
-        howHeading: "Como funciona StrideSafe Gait Lab",
+        howHeading: "Como funciona StrideSafe MotionLab",
         howBody: "Inteligencia de movimiento validada para equipos clinicos y de investigacion.",
         partnersHeading: "Socios white-label",
         partnersBody: "Confiado por clinicas, universidades y lideres de salud digital.",
         splitEyebrow: "Analisis de marcha via app",
         splitHeading: "Analisis de marcha preciso, en cualquier lugar.",
         splitBody1:
-          "StrideSafe Gait Lab hace accesible el analisis complejo sin marcadores ni hardware dedicado.",
+          "StrideSafe MotionLab hace accesible el analisis complejo sin marcadores ni hardware dedicado.",
         splitBody2:
           "Captura datos con smartphone y convierte en metricas estructuradas.",
         splitCta: "Agendar demo",
@@ -3008,7 +3008,7 @@ function GaitLabPage({ locale, buildHrefFor, currentPath }) {
       }
     : {
         eyebrow: "Clinical gait analysis via smartphone",
-        heading: "StrideSafe Gait Lab - the gait lab for your pocket",
+        heading: "StrideSafe MotionLab - the gait lab for your pocket",
         lead:
           "Precise AI-powered movement analysis designed for clinics, therapy, and research teams. Capture objective gait data in minutes.",
         ctaPrimary: "Request a Demo",
@@ -3020,14 +3020,14 @@ function GaitLabPage({ locale, buildHrefFor, currentPath }) {
         phoneTracking: "Progress tracking",
         phoneNext: "Next review",
         phoneNextValue: "2 weeks",
-        howHeading: "How StrideSafe Gait Lab works",
+        howHeading: "How StrideSafe MotionLab works",
         howBody: "Validated movement intelligence designed for clinical and research teams.",
         partnersHeading: "Our white-label partners",
         partnersBody: "Trusted by clinics, universities, and digital health leaders.",
         splitEyebrow: "Gait analysis via app",
         splitHeading: "Precision gait analysis, anytime and anywhere.",
         splitBody1:
-          "StrideSafe Gait Lab makes complex gait analysis accessible without markers or dedicated lab hardware.",
+          "StrideSafe MotionLab makes complex gait analysis accessible without markers or dedicated lab hardware.",
         splitBody2:
           "Capture movement data with a smartphone and turn it into structured gait metrics for clinicians, patients, and researchers.",
         splitCta: "Book a Demo",
@@ -3061,7 +3061,7 @@ function GaitLabPage({ locale, buildHrefFor, currentPath }) {
           <div className="hero-content">
             <div className="app-badge">
               <span className="app-badge-icon"><AppMark /></span>
-              <span>StrideSafe Gait Lab</span>
+              <span>StrideSafe MotionLab</span>
             </div>
             <p className="eyebrow">{copy.eyebrow}</p>
             <h1>{copy.heading}</h1>

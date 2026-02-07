@@ -84,7 +84,7 @@ StrideSafe is a fall-prevention platform for the US market focused on senior liv
 **Marketing Site**
 - Multi‑page landing/product/solution pages in EN/ES.
 - About page with SEO‑ready content.
-- Products dropdown with StrideSafe Home, StrideSafe Gait Lab, PT Workflow.
+- Products dropdown with StrideSafe Home, StrideSafe MotionLab, PT Workflow.
 - Solutions dropdown for Primary Care, Senior Living, Home Health, Orthopedics.
 - Compliance messaging (SOC 2 Type II, HIPAA‑aligned).
 
