@@ -62,6 +62,14 @@ const maxVideoSizeMb = Number.parseInt(process.env.MAX_VIDEO_SIZE_MB || "100", 1
 const maxVideoSizeBytes = Number.isFinite(maxVideoSizeMb)
   ? maxVideoSizeMb * 1024 * 1024
   : 100 * 1024 * 1024;
+const rateLimitEnabled = parseOptionalBoolean(process.env.RATE_LIMIT_ENABLED).value !== false;
+const rateLimitWindowMinutes = Number.parseInt(process.env.RATE_LIMIT_WINDOW_MINUTES || "10", 10);
+const rateLimitMax = Number.parseInt(process.env.RATE_LIMIT_MAX || "600", 10);
+const rateLimitAuthWindowMinutes = Number.parseInt(process.env.RATE_LIMIT_AUTH_WINDOW_MINUTES || "15", 10);
+const rateLimitAuthMax = Number.parseInt(process.env.RATE_LIMIT_AUTH_MAX || "50", 10);
+const rateLimitUploadWindowMinutes = Number.parseInt(process.env.RATE_LIMIT_UPLOAD_WINDOW_MINUTES || "60", 10);
+const rateLimitUploadMax = Number.parseInt(process.env.RATE_LIMIT_UPLOAD_MAX || "60", 10);
+const trustProxy = parseOptionalBoolean(process.env.TRUST_PROXY).value === true;
 const allowedAssessmentStatuses = new Set(["draft", "needs_review", "in_review", "completed"]);
 const allowedRiskTiers = new Set(["low", "moderate", "high"]);
 const riskScoreMap = {
@@ -442,7 +450,60 @@ const buildUserResponse = (user) => {
   };
 };
 
+const createRateLimiter = ({ keyPrefix, windowMs, max, message }) => {
+  const store = new Map();
+  const safeWindowMs = Number.isFinite(windowMs) && windowMs > 0 ? windowMs : 10 * 60 * 1000;
+  const safeMax = Number.isFinite(max) && max > 0 ? max : 600;
+  return (req, res, next) => {
+    if (!rateLimitEnabled) {
+      return next();
+    }
+    if (req.path === "/health") {
+      return next();
+    }
+    const now = Date.now();
+    const ip = req.ip || req.socket?.remoteAddress || "unknown";
+    const key = `${keyPrefix}:${ip}`;
+    let entry = store.get(key);
+    if (!entry || now - entry.start >= safeWindowMs) {
+      entry = { start: now, count: 0 };
+      store.set(key, entry);
+    }
+    entry.count += 1;
+    if (entry.count > safeMax) {
+      const retryAfter = Math.max(1, Math.ceil((safeWindowMs - (now - entry.start)) / 1000));
+      res.set("Retry-After", String(retryAfter));
+      return res.status(429).json({ message });
+    }
+    return next();
+  };
+};
+
+const generalRateLimiter = createRateLimiter({
+  keyPrefix: "general",
+  windowMs: rateLimitWindowMinutes * 60 * 1000,
+  max: rateLimitMax,
+  message: "Too many requests. Please try again later.",
+});
+
+const authRateLimiter = createRateLimiter({
+  keyPrefix: "auth",
+  windowMs: rateLimitAuthWindowMinutes * 60 * 1000,
+  max: rateLimitAuthMax,
+  message: "Too many login attempts. Please try again later.",
+});
+
+const uploadRateLimiter = createRateLimiter({
+  keyPrefix: "upload",
+  windowMs: rateLimitUploadWindowMinutes * 60 * 1000,
+  max: rateLimitUploadMax,
+  message: "Upload rate limit exceeded. Please try again later.",
+});
+
 app.disable("x-powered-by");
+if (trustProxy) {
+  app.set("trust proxy", 1);
+}
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
@@ -453,6 +514,7 @@ app.use((req, res, next) => {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "25mb" }));
 app.use(morgan("dev"));
+app.use(generalRateLimiter);
 const openapiPath = path.resolve(__dirname, "../../api/openapi.yaml");
 const openapiSpec = YAML.load(openapiPath);
 
@@ -1795,7 +1857,7 @@ const upload = multer({
   limits: { fileSize: maxVideoSizeBytes },
 });
 
-app.post("/auth/login", asyncHandler(async (req, res) => {
+app.post("/auth/login", authRateLimiter, asyncHandler(async (req, res) => {
   const { email, password } = req.body || {};
   const normalizedEmail = normalizeString(email).toLowerCase();
   if (!normalizedEmail || !password) {
@@ -3696,6 +3758,8 @@ app.get("/workflow/queue", authMiddleware, asyncHandler(async (req, res) => {
   });
   res.json(combined.slice(0, limit));
 }));
+
+app.use("/assessments/:id/videos", uploadRateLimiter);
 
 app.post("/assessments/:id/videos/presign", authMiddleware, asyncHandler(async (req, res) => {
   const { id } = req.params;

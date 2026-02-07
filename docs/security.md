@@ -27,3 +27,7 @@
 ## Client Storage
 - `localStorage` is used only for auth token, user object, and onboarding flags.
 - Onboarding state is sanitized to `{ completed, dismissed, checks }` and a dev guard blocks PHI/PII keys from being persisted.
+
+## Rate Limiting
+- Auth and video upload endpoints are rate-limited to reduce abuse.
+- Limits are configurable via `RATE_LIMIT_*` environment variables.

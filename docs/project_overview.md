@@ -86,6 +86,14 @@ export SMTP_USER=your_user
 export SMTP_PASS=your_pass
 export EMAIL_FROM=no-reply@stridesafe.com
 export EMAIL_OUTBOX_DIR="New project/server/storage/outbox"
+export RATE_LIMIT_ENABLED=true
+export RATE_LIMIT_WINDOW_MINUTES=10
+export RATE_LIMIT_MAX=600
+export RATE_LIMIT_AUTH_WINDOW_MINUTES=15
+export RATE_LIMIT_AUTH_MAX=50
+export RATE_LIMIT_UPLOAD_WINDOW_MINUTES=60
+export RATE_LIMIT_UPLOAD_MAX=60
+export TRUST_PROXY=false
 npm run migrate
 npm run seed
 npm run dev
