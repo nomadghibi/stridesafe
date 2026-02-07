@@ -1,5 +1,7 @@
 # StrideSafe
 
+[![CI](https://github.com/nomadghibi/stridesafe/actions/workflows/ci.yml/badge.svg)](https://github.com/nomadghibi/stridesafe/actions/workflows/ci.yml)
+
 StrideSafe is a fall-risk screening and post-fall workflow platform for senior living and home health. It combines standardized assessments, video capture, reporting, workflow accountability, and outcomes analytics in a single clinician and admin portal.
 
 ## Highlights
