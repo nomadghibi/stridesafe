@@ -2017,14 +2017,39 @@ function useStoredAuth() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const sync = () => {
+      setToken(getStoredValue(TOKEN_STORAGE_KEY));
+      setUser(getStoredJson(USER_STORAGE_KEY));
+    };
+    window.addEventListener("storage", sync);
+    window.addEventListener("stridesafe-auth", sync);
+    return () => {
+      window.removeEventListener("storage", sync);
+      window.removeEventListener("stridesafe-auth", sync);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    window.dispatchEvent(new Event("stridesafe-auth"));
+  }, [token, user]);
+
   return { token, setToken, user, setUser };
 }
 
 function SiteHeader({ locale, buildHrefFor, currentPath }) {
+  const { user, setToken, setUser } = useStoredAuth();
   const [activeLanguages, setActiveLanguages] = useState({
     en: true,
     es: false,
   });
+  const isAuthed = Boolean(user);
 
   useEffect(() => {
     setActiveLanguages({ en: locale === "en", es: locale === "es" });
@@ -2038,6 +2063,9 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
         about: "Acerca de",
         portal: "Portal clinico",
         login: "Iniciar sesion",
+        signup: "Crear cuenta",
+        myPortal: "Mi portal",
+        logout: "Cerrar sesion",
         requestDemo: "Solicitar demo",
         productHome: "StrideSafe Home",
         productGait: "StrideSafe MotionLab",
@@ -2056,6 +2084,9 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
         about: "About",
         portal: "Portal",
         login: "Login",
+        signup: "Sign up",
+        myPortal: "My Portal",
+        logout: "Logout",
         requestDemo: "Request a Demo",
         productHome: "StrideSafe Home",
         productGait: "StrideSafe MotionLab",
@@ -2073,6 +2104,11 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
     if (code !== locale) {
       window.location.hash = buildHrefFor(currentPath, code);
     }
+  };
+
+  const handleLogout = () => {
+    setToken("");
+    setUser(null);
   };
 
   return (
@@ -2110,8 +2146,24 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
             </div>
           </div>
           <a href={buildHrefFor("/about")} className="nav-link">{navCopy.about}</a>
-          <a href={buildHrefFor("/portal")} className="nav-link">{navCopy.portal}</a>
-          <a href={buildHrefFor("/portal")} className="nav-link">{navCopy.login}</a>
+          <div className="nav-dropdown">
+            <button className="nav-link nav-button" type="button" aria-haspopup="true">
+              {navCopy.portal}
+            </button>
+            <div className="dropdown-menu">
+              {isAuthed ? (
+                <>
+                  <a href={buildHrefFor("/portal")}>{navCopy.myPortal}</a>
+                  <a href={buildHrefFor("/portal")} onClick={handleLogout}>{navCopy.logout}</a>
+                </>
+              ) : (
+                <>
+                  <a href={buildHrefFor("/portal?mode=login")}>{navCopy.login}</a>
+                  <a href={buildHrefFor("/portal?mode=signup")}>{navCopy.signup}</a>
+                </>
+              )}
+            </div>
+          </div>
           <div className="language-tags" role="group" aria-label="Languages">
             {[
               { code: "en", label: "English" },
@@ -4364,9 +4416,13 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
         heading: "Evalua riesgo de caidas, sube video y genera reportes en minutos.",
         lead:
           "El portal clinico de StrideSafe permite crear residentes, iniciar evaluaciones, capturar TUG/Chair Stand/Balance y generar PDFs listos para documentacion.",
+        authTabLogin: "Iniciar sesion",
+        authTabSignup: "Solicitar acceso",
         accessTitle: "Acceso clinico",
         accessBadge: "Acceso seguro",
         accessBody: "Inicia sesion para acceder a residentes, evaluaciones y reportes.",
+        signupTitle: "Solicitar acceso",
+        signupBody: "Comparte tus datos y habilitamos el acceso para tu piloto.",
         accessSecurityTitle: "Resumen de cumplimiento",
         accessSecurityBody: "Disenado para el mercado de EE.UU. con controles listos para auditoria.",
         accessSecurityBullets: [
@@ -4591,6 +4647,23 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
         passwordLabel: "Contrasena",
         loginButton: "Iniciar sesion",
         loginBusy: "Ingresando...",
+        signupNameLabel: "Nombre completo",
+        signupFacilityLabel: "Instalacion / organizacion",
+        signupRoleLabel: "Rol",
+        signupRolePlaceholder: "Selecciona tu rol",
+        signupRoleOptions: [
+          { value: "admin", label: "Administrador" },
+          { value: "clinician", label: "Clinico / PT" },
+          { value: "ops", label: "Operaciones / QAPI" },
+          { value: "other", label: "Otro" },
+        ],
+        signupPhoneLabel: "Telefono (opcional)",
+        signupNotesLabel: "Notas (opcional)",
+        signupButton: "Solicitar acceso",
+        signupBusy: "Enviando...",
+        signupSuccess: "Gracias. Nuestro equipo te contactara en 1 dia habil.",
+        signupError: "Completa nombre, correo, instalacion y rol.",
+        signupNote: "Un especialista confirmara tu informacion antes de activar el acceso.",
         saving: "Guardando...",
         logout: "Cerrar sesion",
         signedIn: "Sesion activa",
@@ -5011,9 +5084,13 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
         heading: "Assess fall risk, upload video, and generate reports in minutes.",
         lead:
           "The StrideSafe clinician portal lets you create residents, start assessments, capture TUG/Chair Stand/Balance, and generate documentation-ready PDFs.",
+        authTabLogin: "Sign in",
+        authTabSignup: "Request access",
         accessTitle: "Clinician access",
         accessBadge: "Secure access",
         accessBody: "Sign in to access residents, assessments, and reports.",
+        signupTitle: "Request access",
+        signupBody: "Share your details and we’ll enable access for your pilot.",
         accessSecurityTitle: "Compliance snapshot",
         accessSecurityBody: "Built for the US market with audit-ready controls.",
         accessSecurityBullets: [
@@ -5238,6 +5315,23 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
         passwordLabel: "Password",
         loginButton: "Sign in",
         loginBusy: "Signing in...",
+        signupNameLabel: "Full name",
+        signupFacilityLabel: "Facility / organization",
+        signupRoleLabel: "Role",
+        signupRolePlaceholder: "Select your role",
+        signupRoleOptions: [
+          { value: "admin", label: "Administrator" },
+          { value: "clinician", label: "Clinician / PT" },
+          { value: "ops", label: "Operations / QAPI" },
+          { value: "other", label: "Other" },
+        ],
+        signupPhoneLabel: "Phone (optional)",
+        signupNotesLabel: "Notes (optional)",
+        signupButton: "Request access",
+        signupBusy: "Submitting...",
+        signupSuccess: "Thanks. Our team will reach out within 1 business day.",
+        signupError: "Please complete name, email, facility, and role.",
+        signupNote: "We verify each request before activating portal access.",
         saving: "Saving...",
         logout: "Log out",
         signedIn: "Signed in",
@@ -5774,13 +5868,43 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
       ];
 
   const { token, setToken, user, setUser } = useStoredAuth();
+  const resolveAuthView = (pathValue) => {
+    if (!pathValue) {
+      return "login";
+    }
+    if (pathValue.includes("mode=signup") || pathValue.includes("/portal/signup")) {
+      return "signup";
+    }
+    if (pathValue.includes("mode=login")) {
+      return "login";
+    }
+    return "login";
+  };
+  const [authView, setAuthView] = useState(() => resolveAuthView(currentPath));
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [loginError, setLoginError] = useState("");
   const [loginBusy, setLoginBusy] = useState(false);
+  const [signupForm, setSignupForm] = useState({
+    full_name: "",
+    email: "",
+    facility: "",
+    role: "",
+    phone: "",
+    notes: "",
+  });
+  const [signupError, setSignupError] = useState("");
+  const [signupSuccess, setSignupSuccess] = useState("");
+  const [signupBusy, setSignupBusy] = useState(false);
   const [onboardingState, setOnboardingState] = useState({ completed: false, dismissed: false, checks: {} });
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [onboardingStepIndex, setOnboardingStepIndex] = useState(0);
   const onboardingKey = user?.id ? `${ONBOARDING_STORAGE_KEY}_${user.id}` : "";
+  useEffect(() => {
+    if (token) {
+      return;
+    }
+    setAuthView(resolveAuthView(currentPath));
+  }, [currentPath, token]);
   const [onboardingFacilityForm, setOnboardingFacilityForm] = useState({
     assessment_protocol: "tug_chair_balance",
     capture_method: "record_upload",
@@ -7006,6 +7130,17 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
     return Object.keys(errors).length === 0;
   };
 
+  const handleAuthViewChange = (nextView) => {
+    setAuthView(nextView);
+    setLoginError("");
+    setSignupError("");
+    setSignupSuccess("");
+    if (typeof window !== "undefined") {
+      const target = nextView === "signup" ? "/portal?mode=signup" : "/portal?mode=login";
+      window.location.hash = buildHrefFor(target);
+    }
+  };
+
   const handleLogin = async (event) => {
     event.preventDefault();
     setLoginError("");
@@ -7026,6 +7161,31 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
     } finally {
       setLoginBusy(false);
     }
+  };
+
+  const handleSignup = (event) => {
+    event.preventDefault();
+    setSignupError("");
+    setSignupSuccess("");
+    const required = ["full_name", "email", "facility", "role"];
+    const missing = required.some((field) => !signupForm[field].trim());
+    if (missing) {
+      setSignupError(copy.signupError);
+      return;
+    }
+    setSignupBusy(true);
+    window.setTimeout(() => {
+      setSignupBusy(false);
+      setSignupSuccess(copy.signupSuccess);
+      setSignupForm({
+        full_name: "",
+        email: "",
+        facility: "",
+        role: "",
+        phone: "",
+        notes: "",
+      });
+    }, 400);
   };
 
   const handleLogout = () => {
@@ -9588,40 +9748,140 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
                     {copy.accessBadge}
                   </span>
                   <div>
-                    <h3>{copy.accessTitle}</h3>
-                    <p className="text-muted">{copy.accessBody}</p>
+                    <h3>{authView === "signup" ? copy.signupTitle : copy.accessTitle}</h3>
+                    <p className="text-muted">{authView === "signup" ? copy.signupBody : copy.accessBody}</p>
                   </div>
                 </div>
                 <div className="portal-access-grid">
                   <div className="portal-access-main">
-                    <form className="portal-form" onSubmit={handleLogin}>
-                      <div className="portal-field">
-                        <label htmlFor="portal-email">{copy.emailLabel}</label>
-                        <input
-                          id="portal-email"
-                          type="email"
-                          autoComplete="username"
-                          value={loginForm.email}
-                          onChange={(event) => setLoginForm((prev) => ({ ...prev, email: event.target.value }))}
-                          required
-                        />
-                      </div>
-                      <div className="portal-field">
-                        <label htmlFor="portal-password">{copy.passwordLabel}</label>
-                        <input
-                          id="portal-password"
-                          type="password"
-                          autoComplete="current-password"
-                          value={loginForm.password}
-                          onChange={(event) => setLoginForm((prev) => ({ ...prev, password: event.target.value }))}
-                          required
-                        />
-                      </div>
-                      {loginError ? <div className="portal-message portal-error">{loginError}</div> : null}
-                      <button className="button primary" type="submit" disabled={loginBusy}>
-                        {loginBusy ? copy.loginBusy : copy.loginButton}
+                    <div className="portal-access-toggle" role="tablist" aria-label="Portal access">
+                      <button
+                        className={`portal-access-tab ${authView === "login" ? "active" : ""}`}
+                        type="button"
+                        role="tab"
+                        aria-selected={authView === "login"}
+                        onClick={() => handleAuthViewChange("login")}
+                      >
+                        {copy.authTabLogin}
                       </button>
-                    </form>
+                      <button
+                        className={`portal-access-tab ${authView === "signup" ? "active" : ""}`}
+                        type="button"
+                        role="tab"
+                        aria-selected={authView === "signup"}
+                        onClick={() => handleAuthViewChange("signup")}
+                      >
+                        {copy.authTabSignup}
+                      </button>
+                    </div>
+                    {authView === "login" ? (
+                      <form className="portal-form" onSubmit={handleLogin}>
+                        <div className="portal-field">
+                          <label htmlFor="portal-email">{copy.emailLabel}</label>
+                          <input
+                            id="portal-email"
+                            type="email"
+                            autoComplete="username"
+                            value={loginForm.email}
+                            onChange={(event) => setLoginForm((prev) => ({ ...prev, email: event.target.value }))}
+                            required
+                          />
+                        </div>
+                        <div className="portal-field">
+                          <label htmlFor="portal-password">{copy.passwordLabel}</label>
+                          <input
+                            id="portal-password"
+                            type="password"
+                            autoComplete="current-password"
+                            value={loginForm.password}
+                            onChange={(event) => setLoginForm((prev) => ({ ...prev, password: event.target.value }))}
+                            required
+                          />
+                        </div>
+                        {loginError ? <div className="portal-message portal-error">{loginError}</div> : null}
+                        <button className="button primary" type="submit" disabled={loginBusy}>
+                          {loginBusy ? copy.loginBusy : copy.loginButton}
+                        </button>
+                      </form>
+                    ) : (
+                      <form className="portal-form" onSubmit={handleSignup}>
+                        <div className="portal-edit-grid">
+                          <div className="portal-field">
+                            <label htmlFor="signup-name">{copy.signupNameLabel}</label>
+                            <input
+                              id="signup-name"
+                              type="text"
+                              autoComplete="name"
+                              value={signupForm.full_name}
+                              onChange={(event) => setSignupForm((prev) => ({ ...prev, full_name: event.target.value }))}
+                              required
+                            />
+                          </div>
+                          <div className="portal-field">
+                            <label htmlFor="signup-email">{copy.emailLabel}</label>
+                            <input
+                              id="signup-email"
+                              type="email"
+                              autoComplete="email"
+                              value={signupForm.email}
+                              onChange={(event) => setSignupForm((prev) => ({ ...prev, email: event.target.value }))}
+                              required
+                            />
+                          </div>
+                          <div className="portal-field">
+                            <label htmlFor="signup-facility">{copy.signupFacilityLabel}</label>
+                            <input
+                              id="signup-facility"
+                              type="text"
+                              autoComplete="organization"
+                              value={signupForm.facility}
+                              onChange={(event) => setSignupForm((prev) => ({ ...prev, facility: event.target.value }))}
+                              required
+                            />
+                          </div>
+                          <div className="portal-field">
+                            <label htmlFor="signup-role">{copy.signupRoleLabel}</label>
+                            <select
+                              id="signup-role"
+                              value={signupForm.role}
+                              onChange={(event) => setSignupForm((prev) => ({ ...prev, role: event.target.value }))}
+                              required
+                            >
+                              <option value="">{copy.signupRolePlaceholder}</option>
+                              {copy.signupRoleOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="portal-field">
+                            <label htmlFor="signup-phone">{copy.signupPhoneLabel}</label>
+                            <input
+                              id="signup-phone"
+                              type="tel"
+                              autoComplete="tel"
+                              value={signupForm.phone}
+                              onChange={(event) => setSignupForm((prev) => ({ ...prev, phone: event.target.value }))}
+                            />
+                          </div>
+                          <div className="portal-field portal-field-full">
+                            <label htmlFor="signup-notes">{copy.signupNotesLabel}</label>
+                            <textarea
+                              id="signup-notes"
+                              value={signupForm.notes}
+                              onChange={(event) => setSignupForm((prev) => ({ ...prev, notes: event.target.value }))}
+                            />
+                          </div>
+                        </div>
+                        {signupError ? <div className="portal-message portal-error">{signupError}</div> : null}
+                        {signupSuccess ? <div className="portal-message portal-success">{signupSuccess}</div> : null}
+                        <button className="button primary" type="submit" disabled={signupBusy}>
+                          {signupBusy ? copy.signupBusy : copy.signupButton}
+                        </button>
+                        <p className="portal-form-note">{copy.signupNote}</p>
+                      </form>
+                    )}
                   </div>
                   <aside className="portal-access-side">
                     <div className="portal-security-card">
