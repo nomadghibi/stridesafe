@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://stridesafe.com/sitemap.xml

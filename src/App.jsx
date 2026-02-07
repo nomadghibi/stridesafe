@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { hubSlug, seoPageSlugs, seoPages, seoPagesBySlug } from "./marketing/seoPages";
 
 const getLocaleFromRoute = (route) => (route.startsWith("/es") ? "es" : "en");
 
@@ -13,10 +14,17 @@ const stripLocaleFromRoute = (route, locale) => {
 const buildHref = (path, locale) => {
   const prefix = locale === "es" ? "/es" : "";
   const normalizedPath = path === "/" ? "" : path;
-  if (!prefix && normalizedPath === "") {
-    return "#/";
+  const target = `${prefix}${normalizedPath}`;
+  const cleanPath = target || "/";
+  if (typeof window === "undefined") {
+    return cleanPath;
   }
-  return `#${prefix}${normalizedPath}`;
+  const preferHash = window.location.pathname === "/" && window.location.hash?.startsWith("#/");
+  if (preferHash) {
+    const hashPath = target === "" ? "/" : target;
+    return `#${hashPath}`;
+  }
+  return cleanPath;
 };
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000";
@@ -1891,17 +1899,23 @@ function AppMark() {
 }
 
 function useHashRoute() {
-  const getHash = () => {
+  const getRoute = () => {
     if (typeof window === "undefined") {
       return "/";
     }
-    return window.location.hash.replace(/^#/, "") || "/";
+    const pathname = window.location.pathname || "/";
+    const search = window.location.search || "";
+    const hash = window.location.hash.replace(/^#/, "");
+    const hashPath = hash ? (hash.startsWith("/") ? hash : `/${hash}`) : "";
+    const pathRoute = pathname && pathname !== "/" && pathname !== "/index.html" ? pathname : "";
+    const baseRoute = pathRoute || hashPath || "/";
+    return `${baseRoute}${search}`;
   };
-  const [route, setRoute] = useState(() => getHash());
+  const [route, setRoute] = useState(() => getRoute());
 
   useEffect(() => {
     function handleChange() {
-      setRoute(getHash());
+      setRoute(getRoute());
       if (typeof window !== "undefined") {
         const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
         const isMobile = window.matchMedia?.("(max-width: 768px)")?.matches;
@@ -1910,7 +1924,11 @@ function useHashRoute() {
       }
     }
     window.addEventListener("hashchange", handleChange);
-    return () => window.removeEventListener("hashchange", handleChange);
+    window.addEventListener("popstate", handleChange);
+    return () => {
+      window.removeEventListener("hashchange", handleChange);
+      window.removeEventListener("popstate", handleChange);
+    };
   }, []);
 
   return route;
@@ -1921,6 +1939,8 @@ function usePageMeta(locale, route) {
     if (typeof document === "undefined") {
       return;
     }
+    const cleanRoute = route.split("?")[0];
+    const seoPage = seoPagesBySlug[cleanRoute];
     const metaConfig = locale === "es"
       ? [
           {
@@ -1928,6 +1948,12 @@ function usePageMeta(locale, route) {
             title: "Sobre StrideSafe | Plataforma de prevencion de caidas",
             description:
               "StrideSafe es una plataforma de prevencion para residencias, salud en el hogar y PT ambulatorio. Combinamos analisis de marcha, evaluacion basada en evidencia y reportes listos.",
+          },
+          {
+            match: (value) => value.startsWith("/blog"),
+            title: "Blog | StrideSafe",
+            description:
+              "Guia practica sobre prevencion de caidas, cumplimiento y flujos clinicos para residencias y salud en el hogar.",
           },
           {
             match: (value) => value.startsWith("/admin-review"),
@@ -1996,6 +2022,12 @@ function usePageMeta(locale, route) {
             title: "About StrideSafe | Fall Prevention Platform",
             description:
               "StrideSafe is a fall-prevention platform for senior living, home health, and outpatient PT. We combine smartphone gait analysis, evidence-based screening, and documentation-ready reporting.",
+          },
+          {
+            match: (value) => value.startsWith("/blog"),
+            title: "Blog | StrideSafe",
+            description:
+              "Practical guidance on fall prevention, compliance, and clinical workflows for senior living and home health teams.",
           },
           {
             match: (value) => value.startsWith("/admin-review"),
@@ -2071,7 +2103,13 @@ function usePageMeta(locale, route) {
             "StrideSafe delivers fast, objective fall-risk screening and gait analysis for senior living, home health, and outpatient care.",
         };
 
-    const current = metaConfig.find((entry) => entry.match(route)) || fallback;
+    const seoMeta = seoPage
+      ? {
+          title: locale === "es" ? seoPage.title_es : seoPage.title_en,
+          description: locale === "es" ? seoPage.description_es : seoPage.description_en,
+        }
+      : null;
+    const current = seoMeta || metaConfig.find((entry) => entry.match(route)) || fallback;
     document.title = current.title;
 
     const setMeta = (attr, key, content) => {
@@ -2087,7 +2125,48 @@ function usePageMeta(locale, route) {
     setMeta("name", "description", current.description);
     setMeta("property", "og:title", current.title);
     setMeta("property", "og:description", current.description);
+
+    const canonicalPathBase = cleanRoute === "/" ? "" : cleanRoute;
+    const localePrefix = locale === "es" ? "/es" : "";
+    const canonicalPath = `${localePrefix}${canonicalPathBase}` || "/";
+    const canonicalUrl = `${window.location.origin}${canonicalPath}`;
+    let canonicalTag = document.querySelector('link[rel="canonical"]');
+    if (!canonicalTag) {
+      canonicalTag = document.createElement("link");
+      canonicalTag.setAttribute("rel", "canonical");
+      document.head.appendChild(canonicalTag);
+    }
+    canonicalTag.setAttribute("href", canonicalUrl);
   }, [locale, route]);
+}
+
+function useJsonLd(id, data) {
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return undefined;
+    }
+    const scriptId = `jsonld-${id}`;
+    let script = document.getElementById(scriptId);
+    if (!data) {
+      if (script) {
+        script.remove();
+      }
+      return undefined;
+    }
+    if (!script) {
+      script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.id = scriptId;
+      document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(data);
+    return () => {
+      const existing = document.getElementById(scriptId);
+      if (existing) {
+        existing.remove();
+      }
+    };
+  }, [id, data]);
 }
 
 function useStoredAuth() {
@@ -2152,6 +2231,7 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
         products: "Productos",
         solutions: "Soluciones",
         about: "Acerca de",
+        blog: "Blog",
         portal: "Portal clinico",
         login: "Iniciar sesion",
         signup: "Crear cuenta",
@@ -2162,6 +2242,7 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
         productGait: "StrideSafe MotionLab",
         productPt: "StrideSafe TherapyFlow",
         productAdmin: "Consola Admin",
+        solutionFallRisk: "Riesgo de caidas",
         solutionPrimary: "Atencion primaria",
         solutionSenior: "Residencias",
         solutionHome: "Salud en el hogar",
@@ -2173,6 +2254,7 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
         products: "Products",
         solutions: "Solutions",
         about: "About",
+        blog: "Blog",
         portal: "Portal",
         login: "Login",
         signup: "Sign up",
@@ -2183,18 +2265,13 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
         productGait: "StrideSafe MotionLab",
         productPt: "StrideSafe TherapyFlow",
         productAdmin: "Admin Review Console",
+        solutionFallRisk: "Fall Risk Software",
         solutionPrimary: "Primary Care",
         solutionSenior: "Senior Living",
         solutionHome: "Home Health",
         solutionOrtho: "Orthopedics",
         brandSub: "Fall prevention",
       };
-
-  const toggleLanguage = (code) => {
-    if (code !== locale) {
-      window.location.hash = buildHrefFor(currentPath, code);
-    }
-  };
 
   const handleNavScroll = () => {
     if (typeof window === "undefined") {
@@ -2204,6 +2281,21 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
     const isMobile = window.matchMedia?.("(max-width: 768px)")?.matches;
     const behavior = prefersReducedMotion || isMobile ? "auto" : "smooth";
     window.scrollTo({ top: 0, left: 0, behavior });
+  };
+
+  const closeDropdownMenus = () => {
+    if (typeof document === "undefined") {
+      return;
+    }
+    const active = document.activeElement;
+    if (active && typeof active.blur === "function") {
+      active.blur();
+    }
+  };
+
+  const handleNavClick = () => {
+    handleNavScroll();
+    closeDropdownMenus();
   };
 
   const handleLogout = () => {
@@ -2236,10 +2328,10 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
               {navCopy.products}
             </button>
             <div className="dropdown-menu">
-              <a href={buildHrefFor("/stridesafe-home")} onClick={handleNavScroll}>{navCopy.productHome}</a>
-              <a href={buildHrefFor("/gait-lab")} onClick={handleNavScroll}>{navCopy.productGait}</a>
-              <a href={buildHrefFor("/pt-workflow")} onClick={handleNavScroll}>{navCopy.productPt}</a>
-              <a href={buildHrefFor("/admin-review")} onClick={handleNavScroll}>{navCopy.productAdmin}</a>
+              <a href={buildHrefFor("/stridesafe-home")} onClick={handleNavClick}>{navCopy.productHome}</a>
+              <a href={buildHrefFor("/gait-lab")} onClick={handleNavClick}>{navCopy.productGait}</a>
+              <a href={buildHrefFor("/pt-workflow")} onClick={handleNavClick}>{navCopy.productPt}</a>
+              <a href={buildHrefFor("/admin-review")} onClick={handleNavClick}>{navCopy.productAdmin}</a>
             </div>
           </div>
           <div className="nav-dropdown">
@@ -2247,13 +2339,15 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
               {navCopy.solutions}
             </button>
             <div className="dropdown-menu">
-              <a href={buildHrefFor("/solutions/primary-care")} onClick={handleNavScroll}>{navCopy.solutionPrimary}</a>
-              <a href={buildHrefFor("/solutions/senior-living")} onClick={handleNavScroll}>{navCopy.solutionSenior}</a>
-              <a href={buildHrefFor("/solutions/home-health")} onClick={handleNavScroll}>{navCopy.solutionHome}</a>
-              <a href={buildHrefFor("/solutions/orthopedics")} onClick={handleNavScroll}>{navCopy.solutionOrtho}</a>
+              <a href={buildHrefFor(hubSlug)} onClick={handleNavClick}>{navCopy.solutionFallRisk}</a>
+              <a href={buildHrefFor("/solutions/primary-care")} onClick={handleNavClick}>{navCopy.solutionPrimary}</a>
+              <a href={buildHrefFor("/solutions/senior-living")} onClick={handleNavClick}>{navCopy.solutionSenior}</a>
+              <a href={buildHrefFor("/solutions/home-health")} onClick={handleNavClick}>{navCopy.solutionHome}</a>
+              <a href={buildHrefFor("/solutions/orthopedics")} onClick={handleNavClick}>{navCopy.solutionOrtho}</a>
             </div>
           </div>
           <a href={buildHrefFor("/about")} className="nav-link" onClick={handleNavScroll}>{navCopy.about}</a>
+          <a href={buildHrefFor("/blog")} className="nav-link" onClick={handleNavScroll}>{navCopy.blog}</a>
           <div className="nav-dropdown">
             <button className="nav-link nav-button" type="button" aria-haspopup="true">
               {navCopy.portal}
@@ -2261,12 +2355,12 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
             <div className="dropdown-menu">
               {isAuthed ? (
                 <>
-                  <a href={buildHrefFor("/portal")} onClick={handleNavScroll}>{navCopy.myPortal}</a>
+                  <a href={buildHrefFor("/portal")} onClick={handleNavClick}>{navCopy.myPortal}</a>
                   <a
                     href={buildHrefFor("/portal")}
                     onClick={() => {
                       handleLogout();
-                      handleNavScroll();
+                      handleNavClick();
                     }}
                   >
                     {navCopy.logout}
@@ -2274,33 +2368,10 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
                 </>
               ) : (
                 <>
-                  <a href={buildHrefFor("/portal?mode=login")} onClick={handleNavScroll}>{navCopy.login}</a>
-                  <a href={buildHrefFor("/portal?mode=signup")} onClick={handleNavScroll}>{navCopy.signup}</a>
+                  <a href={buildHrefFor("/portal?mode=login")} onClick={handleNavClick}>{navCopy.login}</a>
+                  <a href={buildHrefFor("/portal?mode=signup")} onClick={handleNavClick}>{navCopy.signup}</a>
                 </>
               )}
-            </div>
-          </div>
-          <div className="nav-dropdown">
-            <button className="nav-link nav-button" type="button" aria-haspopup="true">
-              English
-            </button>
-            <div className="dropdown-menu">
-              <button
-                type="button"
-                className={`lang-option ${locale !== "es" ? "active" : ""}`}
-                onClick={() => toggleLanguage("en")}
-                aria-pressed={locale !== "es"}
-              >
-                English
-              </button>
-              <button
-                type="button"
-                className={`lang-option ${locale === "es" ? "active" : ""}`}
-                onClick={() => toggleLanguage("es")}
-                aria-pressed={locale === "es"}
-              >
-                Español
-              </button>
             </div>
           </div>
           <a className="button primary" href={buildHrefFor("/request-demo")}>
@@ -4558,6 +4629,338 @@ function AboutPage({ locale, buildHrefFor, currentPath }) {
             <p>{copy.calloutBody}</p>
           </div>
           <a className="button ghost" href={buildHrefFor("/request-demo")}>{copy.calloutButton}</a>
+        </div>
+      </section>
+    </Layout>
+  );
+}
+
+const blogPosts = [
+  {
+    tag: "Senior Living",
+    title: "Post-fall workflows that stand up to audit",
+    excerpt:
+      "How to standardize incident intake, follow-up checks, and documentation without overloading staff.",
+    date: "Feb 2026",
+  },
+  {
+    tag: "Operations",
+    title: "Turning fall prevention into measurable outcomes",
+    excerpt:
+      "A practical guide to unit-level scorecards, SLA visibility, and leadership-ready reporting.",
+    date: "Jan 2026",
+  },
+  {
+    tag: "Clinical",
+    title: "TUG + chair stand + balance: getting consistent scores",
+    excerpt:
+      "Best practices for capture quality, scoring consistency, and documenting defensible results.",
+    date: "Jan 2026",
+  },
+];
+
+const blogPostsEs = [
+  {
+    tag: "Residencias",
+    title: "Flujos post-caida listos para auditoria",
+    excerpt:
+      "Como estandarizar incidentes, checklist y documentacion sin sobrecargar al personal.",
+    date: "Feb 2026",
+  },
+  {
+    tag: "Operaciones",
+    title: "Convertir prevencion de caidas en resultados medibles",
+    excerpt:
+      "Guia practica de scorecards por unidad, SLA y reportes para liderazgo.",
+    date: "Ene 2026",
+  },
+  {
+    tag: "Clinico",
+    title: "TUG + chair stand + balance con puntuaciones consistentes",
+    excerpt:
+      "Buenas practicas de captura, consistencia y documentacion defendible.",
+    date: "Ene 2026",
+  },
+];
+
+function BlogPage({ locale, buildHrefFor, currentPath }) {
+  const isEs = locale === "es";
+  const posts = isEs ? blogPostsEs : blogPosts;
+  const copy = isEs
+    ? {
+        badge: "Blog",
+        eyebrow: "Insights para equipos clinicos",
+        heading: "Ideas practicas para prevenir caidas y mejorar resultados.",
+        lead:
+          "Recursos sobre flujos, cumplimiento, calidad y operaciones para residencias y salud en el hogar.",
+        cta: "Solicitar demo",
+      }
+    : {
+        badge: "Blog",
+        eyebrow: "Insights for clinical teams",
+        heading: "Practical guidance for fall prevention and measurable outcomes.",
+        lead:
+          "Resources on workflow design, compliance, and operations for senior living and home health.",
+        cta: "Request a Demo",
+      };
+
+  return (
+    <Layout locale={locale} buildHrefFor={buildHrefFor} currentPath={currentPath}>
+      <section className="hero">
+        <div className="hero-glow" />
+        <div className="container hero-grid">
+          <div className="hero-content">
+            <div className="app-badge">
+              <span className="app-badge-icon"><AppMark /></span>
+              <span>{copy.badge}</span>
+            </div>
+            <p className="eyebrow">{copy.eyebrow}</p>
+            <h1>{copy.heading}</h1>
+            <p className="lead">{copy.lead}</p>
+            <a className="button primary" href={buildHrefFor("/request-demo")}>{copy.cta}</a>
+          </div>
+          <div className="hero-media">
+            <div className="workflow-card floating">
+              <div className="workflow-header">
+                <span>Fall prevention insights</span>
+                <span className="media-chip">Updated</span>
+              </div>
+              <div className="workflow-track">
+                <div className="workflow-node">Workflow</div>
+                <div className="workflow-node">Compliance</div>
+                <div className="workflow-node">Outcomes</div>
+                <div className="workflow-node">Operations</div>
+              </div>
+            </div>
+            <div className="workflow-card light">
+              <h3>Built for U.S. care teams</h3>
+              <p>Guidance aligned with senior living and home health workflows.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="section section-muted">
+        <div className="container">
+          <div className="section-heading">
+            <h2>{isEs ? "Publicaciones recientes" : "Recent posts"}</h2>
+            <p>{isEs ? "Actualizado regularmente para equipos clinicos." : "Updated regularly for clinical teams."}</p>
+          </div>
+          <div className="grid features-grid">
+            {posts.map((post) => (
+              <div key={post.title} className="feature-card">
+                <span className="tag">{post.tag}</span>
+                <h3>{post.title}</h3>
+                <p>{post.excerpt}</p>
+                <p className="fine-print">{post.date}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </Layout>
+  );
+}
+
+function SeoPage({ page, locale, buildHrefFor, currentPath }) {
+  const isEs = locale === "es";
+  const relatedSlugs = page.slug === hubSlug
+    ? seoPageSlugs.filter((slug) => slug !== hubSlug)
+    : page.related || [hubSlug];
+  const uniqueRelated = [...new Set(relatedSlugs)];
+  const relatedPages = uniqueRelated
+    .map((slug) => seoPagesBySlug[slug])
+    .filter(Boolean);
+
+  const faqItems = (page.faq || []).map((item) => ({
+    question: isEs ? item.q_es : item.q_en,
+    answer: isEs ? item.a_es : item.a_en,
+  }));
+
+  const softwareSchema = page.slug === hubSlug
+    ? {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "StrideSafe",
+        applicationCategory: "HealthcareApplication",
+        operatingSystem: "Web",
+        description: isEs ? page.description_es : page.description_en,
+        offers: {
+          "@type": "Offer",
+          description: isEs ? "Piloto y solicitud de demo" : "Pilot and request demo",
+        },
+      }
+    : null;
+
+  const faqSchema = faqItems.length
+    ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: faqItems.map((item) => ({
+          "@type": "Question",
+          name: item.question,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: item.answer,
+          },
+        })),
+      }
+    : null;
+
+  const jsonLd = softwareSchema && faqSchema
+    ? { "@context": "https://schema.org", "@graph": [softwareSchema, faqSchema] }
+    : softwareSchema || faqSchema;
+
+  useJsonLd(page.slug.replace(/\W/g, ""), jsonLd);
+
+  return (
+    <Layout locale={locale} buildHrefFor={buildHrefFor} currentPath={currentPath}>
+      <section className="hero">
+        <div className="hero-glow" />
+        <div className="container hero-grid">
+          <div className="hero-content">
+            <div className="app-badge">
+              <span className="app-badge-icon"><AppMark /></span>
+              <span>{page.primaryKeyword}</span>
+            </div>
+            <p className="eyebrow">{isEs ? "Senior living" : "Senior living"}</p>
+            <h1>{isEs ? page.h1_es : page.h1_en}</h1>
+            <p className="lead">{isEs ? page.lead_es : page.lead_en}</p>
+            <div className="cta-row">
+              <a className="button primary" href={buildHrefFor("/request-demo")}>
+                {isEs ? page.cta.button_es : page.cta.button_en}
+              </a>
+              <a className="button ghost" href={buildHrefFor(hubSlug)}>
+                {isEs ? "Ver plataforma" : "View platform"}
+              </a>
+            </div>
+          </div>
+          <div className="hero-media">
+            <div className="workflow-card floating">
+              <div className="workflow-header">
+                <span>{isEs ? "Flujo clinico" : "Clinical workflow"}</span>
+                <span className="media-chip">2-3 min</span>
+              </div>
+              <div className="workflow-track">
+                <div className="workflow-node">{isEs ? "Captura" : "Capture"}</div>
+                <div className="workflow-node">{isEs ? "Evalua" : "Assess"}</div>
+                <div className="workflow-node">{isEs ? "Plan" : "Plan"}</div>
+                <div className="workflow-node">{isEs ? "Documenta" : "Document"}</div>
+              </div>
+            </div>
+            <div className="workflow-card light">
+              <h3>{isEs ? "Resultados visibles" : "Visible outcomes"}</h3>
+              <p>{isEs ? "Datos consistentes para equipos clinicos y liderazgo." : "Consistent data for clinical teams and leadership."}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <div className="section-heading">
+            <h2>{isEs ? "El problema" : "The problem"}</h2>
+            <p>{isEs ? page.problem_es : page.problem_en}</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="section section-muted">
+        <div className="container">
+          <div className="section-heading">
+            <h2>{isEs ? "Flujo de trabajo" : "Workflow"}</h2>
+            <p>{isEs ? page.workflow_es : page.workflow_en}</p>
+          </div>
+          <div className="steps-grid">
+            {(isEs ? page.workflow_bullets_es : page.workflow_bullets_en).map((item, index) => (
+              <div key={item} className="step-card">
+                <span className="step-label">0{index + 1}</span>
+                <Icon name="check" />
+                <h3>{item}</h3>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <div className="section-heading">
+            <h2>{isEs ? "Prueba y resultados" : "Proof and outcomes"}</h2>
+            <p>{isEs ? page.proof_es : page.proof_en}</p>
+          </div>
+          <div className="grid features-grid">
+            {page.proof_points.map((point) => (
+              <div key={point.title_en} className="feature-card">
+                <h3>{isEs ? point.title_es : point.title_en}</h3>
+                <p>{isEs ? point.body_es : point.body_en}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section section-muted">
+        <div className="container">
+          <div className="section-heading">
+            <h2>{isEs ? page.compliance.title_es : page.compliance.title_en}</h2>
+            <p>{isEs ? page.compliance.body_es : page.compliance.body_en}</p>
+          </div>
+          <div className="grid features-grid">
+            {(isEs ? page.compliance.bullets_es : page.compliance.bullets_en).map((item) => (
+              <div key={item} className="feature-card">
+                <h3>{item}</h3>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {faqItems.length ? (
+        <section className="section">
+          <div className="container">
+            <div className="section-heading">
+              <h2>{isEs ? "Preguntas frecuentes" : "FAQ"}</h2>
+            </div>
+            <div className="faq">
+              {faqItems.map((item) => (
+                <details key={item.question}>
+                  <summary>{item.question}</summary>
+                  <p>{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <section className="section">
+        <div className="container callout">
+          <div>
+            <h2>{isEs ? page.cta.title_es : page.cta.title_en}</h2>
+            <p>{isEs ? page.cta.body_es : page.cta.body_en}</p>
+          </div>
+          <a className="button primary" href={buildHrefFor("/request-demo")}>
+            {isEs ? page.cta.button_es : page.cta.button_en}
+          </a>
+        </div>
+      </section>
+
+      <section className="section section-muted">
+        <div className="container">
+          <div className="section-heading">
+            <h2>{isEs ? "Paginas relacionadas" : "Related pages"}</h2>
+            <p>{isEs ? "Explora mas flujos para prevencion de caidas." : "Explore more fall prevention workflows."}</p>
+          </div>
+          <div className="grid features-grid">
+            {relatedPages.map((related) => (
+              <a key={related.slug} href={buildHrefFor(related.slug)} className="feature-card">
+                <span className="tag">{isEs ? related.navLabel_es : related.navLabel_en}</span>
+                <h3>{isEs ? related.h1_es : related.h1_en}</h3>
+                <p>{isEs ? related.lead_es : related.lead_en}</p>
+              </a>
+            ))}
+          </div>
         </div>
       </section>
     </Layout>
@@ -7629,7 +8032,13 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
     setSignupSuccess("");
     if (typeof window !== "undefined") {
       const target = nextView === "signup" ? "/portal?mode=signup" : "/portal?mode=login";
-      window.location.hash = buildHrefFor(target);
+      const href = buildHrefFor(target);
+      if (href.startsWith("#")) {
+        window.location.hash = href;
+      } else {
+        window.history.pushState({}, "", href);
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      }
     }
   };
 
@@ -16581,12 +16990,35 @@ export default function App() {
   const solutions = locale === "es" ? solutionsContentEs : solutionsContent;
   const infoPages = locale === "es" ? infoPagesEs : infoPagesEn;
   const infoPageKey = normalizedRoute.replace(/^\//, "").split("/")[0];
+  const seoRoute = normalizedRoute.split("?")[0];
+  const seoPage = seoPagesBySlug[seoRoute];
 
   usePageMeta(locale, normalizedRoute);
+
+  if (seoPage) {
+    return (
+      <SeoPage
+        page={seoPage}
+        locale={locale}
+        buildHrefFor={buildHrefFor}
+        currentPath={normalizedRoute}
+      />
+    );
+  }
 
   if (normalizedRoute.startsWith("/about")) {
     return (
       <AboutPage
+        locale={locale}
+        buildHrefFor={buildHrefFor}
+        currentPath={normalizedRoute}
+      />
+    );
+  }
+
+  if (normalizedRoute.startsWith("/blog")) {
+    return (
+      <BlogPage
         locale={locale}
         buildHrefFor={buildHrefFor}
         currentPath={normalizedRoute}
