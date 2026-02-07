@@ -2804,6 +2804,7 @@ app.post("/residents/:id/fall-events", authMiddleware, asyncHandler(async (req, 
   const emsCalled = parsedEms.value ?? false;
   const hospitalTransfer = parsedHospital.value ?? false;
   const normalizedFactors = factors.value ?? [];
+  const serializedFactors = JSON.stringify(normalizedFactors);
 
   const { rows } = await pool.query(
     `WITH inserted AS (
@@ -2843,7 +2844,7 @@ app.post("/residents/:id/fall-events", authMiddleware, asyncHandler(async (req, 
       emsCalled,
       hospitalTransfer,
       normalizedDevice,
-      normalizedFactors,
+      serializedFactors,
       normalizedNotes,
       req.user.id,
     ]
