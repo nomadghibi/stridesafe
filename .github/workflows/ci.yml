@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: stridesafe_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/stridesafe_ci
+      CI: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Install server dependencies
+        run: npm ci
+        working-directory: server
+
+      - name: Wait for Postgres
+        run: |
+          node -e "const { Client } = require('pg'); const wait = (ms) => new Promise((r) => setTimeout(r, ms)); (async () => { for (let i = 0; i < 20; i += 1) { try { const client = new Client({ connectionString: process.env.DATABASE_URL }); await client.connect(); await client.query('SELECT 1'); await client.end(); process.exit(0); } catch (err) { await wait(1000); } } console.error('Postgres not ready'); process.exit(1); })();"
+        working-directory: server
+
+      - name: Run migrations
+        run: node scripts/migrate.js
+        working-directory: server
+
+      - name: Seed database
+        run: node scripts/seed.js
+        working-directory: server
+
+      - name: Backend tests
+        run: npm test
+        working-directory: server
+
+      - name: Frontend build
+        run: npm run build
