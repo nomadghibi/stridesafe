@@ -2223,7 +2223,7 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
         </a>
         <nav className="site-nav" aria-label="Primary">
           <a
-            href={buildHrefFor("/")}
+            href={buildHrefFor("/stridesafe-home")}
             className="nav-link nav-link-icon"
             onClick={handleNavScroll}
             aria-label={navCopy.home}
@@ -2425,6 +2425,7 @@ function LandingPage({ locale, buildHrefFor, currentPath }) {
   const reimburseBlocks = isEs ? reimbursementBlocksEs : reimbursementBlocks;
   const steps = isEs ? landingStepsEs : landingSteps;
   const impact = isEs ? landingImpactEs : landingImpact;
+  const pricingPlans = isEs ? pricingEs : pricing;
 
   const copy = isEs
     ? {
@@ -2461,6 +2462,9 @@ function LandingPage({ locale, buildHrefFor, currentPath }) {
         reimburseCalloutTitle: "Necesitas un analisis de reembolso?",
         reimburseCalloutBody: "Ofrecemos guias CPT, flujos y plantillas.",
         reimburseButton: "Descargar guia",
+        pricingHeading: "Precios de StrideSafe Home",
+        pricingBody: "Planes para familias y monitoreo en el hogar (USD).",
+        pricingCta: "Unete a la lista",
         validationHeading: "Impulsado por IA, validado por ciencia",
         validationBody: "Resultados consistentes sin equipo adicional.",
         validationCards: [
@@ -2517,6 +2521,9 @@ function LandingPage({ locale, buildHrefFor, currentPath }) {
         reimburseCalloutTitle: "Need a reimbursement deep dive?",
         reimburseCalloutBody: "We provide CPT guidance, workflows, and documentation templates.",
         reimburseButton: "Download Guide",
+        pricingHeading: "StrideSafe Home pricing",
+        pricingBody: "Consumer plans for families and home monitoring (USD).",
+        pricingCta: "Join Waitlist",
         validationHeading: "Powered by AI, validated by science",
         validationBody: "Deliver consistent results without extra equipment.",
         validationCards: [
@@ -2749,6 +2756,33 @@ function LandingPage({ locale, buildHrefFor, currentPath }) {
               <span>{copy.highlightTraditional}</span>
             </div>
             <button className="button ghost" type="button">{copy.highlightButton}</button>
+          </div>
+        </div>
+      </section>
+
+      <section className="section section-muted">
+        <div className="container">
+          <div className="section-heading">
+            <h2>{copy.pricingHeading}</h2>
+            <p>{copy.pricingBody}</p>
+          </div>
+          <div className="pricing-grid">
+            {pricingPlans.map((plan) => (
+              <div key={plan.title} className={`price-card${plan.featured ? " featured" : ""}`}>
+                <h3>{plan.title}</h3>
+                <p className="price-sub">{plan.subtitle}</p>
+                <div className="price-line">
+                  <span className="price">{plan.price}</span>
+                  <span className="cadence">{plan.cadence}</span>
+                </div>
+                <ul>
+                  {plan.features.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                <a className="button primary" href={buildHrefFor("/request-demo")}>{copy.pricingCta}</a>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -15786,7 +15820,7 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
   );
 }
 
-function SolutionsPage({ title, eyebrow, summary, highlights, metrics, cta, locale, buildHrefFor, currentPath }) {
+function SolutionsPage({ title, eyebrow, summary, highlights, metrics, cta, pricing, locale, buildHrefFor, currentPath }) {
   const isEs = locale === "es";
   const steps = isEs ? landingStepsEs : landingSteps;
   const copy = isEs
@@ -15899,6 +15933,35 @@ function SolutionsPage({ title, eyebrow, summary, highlights, metrics, cta, loca
         </div>
       </section>
 
+      {pricing ? (
+        <section className="section section-muted">
+          <div className="container">
+            <div className="section-heading">
+              <h2>{pricing.heading}</h2>
+              <p>{pricing.body}</p>
+            </div>
+            <div className="pricing-grid">
+              {pricing.plans.map((plan) => (
+                <div key={plan.title} className={`price-card${plan.featured ? " featured" : ""}`}>
+                  <h3>{plan.title}</h3>
+                  <p className="price-sub">{plan.subtitle}</p>
+                  <div className="price-line">
+                    <span className="price">{plan.price}</span>
+                    <span className="cadence">{plan.cadence}</span>
+                  </div>
+                  <ul>
+                    {plan.features.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                  <a className="button primary" href={buildHrefFor("/request-demo")}>{pricing.cta}</a>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <section className="section">
         <div className="container callout">
           <div>
@@ -15911,6 +15974,80 @@ function SolutionsPage({ title, eyebrow, summary, highlights, metrics, cta, loca
     </Layout>
   );
 }
+
+const seniorPricing = [
+  {
+    title: "Pilot",
+    subtitle: "Single community rollout",
+    price: "Custom",
+    cadence: "per community",
+    featured: true,
+    features: [
+      "Workflow setup + training",
+      "Assessments + documentation-ready reports",
+      "Post-fall checklist + scorecard",
+    ],
+  },
+  {
+    title: "Operations",
+    subtitle: "Multi-building operations",
+    price: "Custom",
+    cadence: "per community",
+    features: [
+      "Unit-level rollups + accountability",
+      "Workflow queue + SLA monitoring",
+      "Exports + audit-ready logs",
+    ],
+  },
+  {
+    title: "Enterprise",
+    subtitle: "Multi-facility programs",
+    price: "Custom",
+    cadence: "per organization",
+    features: [
+      "Portfolio analytics + benchmarks",
+      "Scheduled exports and integrations",
+      "Dedicated onboarding support",
+    ],
+  },
+];
+
+const seniorPricingEs = [
+  {
+    title: "Piloto",
+    subtitle: "Implementacion en una comunidad",
+    price: "A medida",
+    cadence: "por comunidad",
+    featured: true,
+    features: [
+      "Configuracion del flujo + capacitacion",
+      "Evaluaciones + reportes listos para documentar",
+      "Checklist post-caida + scorecard",
+    ],
+  },
+  {
+    title: "Operaciones",
+    subtitle: "Operacion multi-edificio",
+    price: "A medida",
+    cadence: "por comunidad",
+    features: [
+      "Rollups por unidad + responsabilidad",
+      "Cola de trabajo + SLA",
+      "Exportaciones + registros auditables",
+    ],
+  },
+  {
+    title: "Enterprise",
+    subtitle: "Programas multi-sede",
+    price: "A medida",
+    cadence: "por organizacion",
+    features: [
+      "Analitica de portafolio + comparativos",
+      "Exportaciones programadas e integraciones",
+      "Soporte de onboarding dedicado",
+    ],
+  },
+];
 
 const solutionsContent = {
   primaryCare: {
@@ -15958,6 +16095,12 @@ const solutionsContent = {
       { value: "30 sec", label: "capture time" },
       { value: "Multi-site", label: "ready" },
     ],
+    pricing: {
+      heading: "Senior living pricing",
+      body: "Pilot-friendly tiers designed for U.S. communities. Pricing is tailored to resident volume, staffing, and rollout scope.",
+      cta: "Request pricing",
+      plans: seniorPricing,
+    },
     cta: {
       title: "Upgrade your fall prevention program",
       body: "See how StrideSafe supports resident safety and staff efficiency.",
@@ -16065,6 +16208,12 @@ const solutionsContentEs = {
       { value: "30 seg", label: "tiempo de captura" },
       { value: "Multi-sitio", label: "listo" },
     ],
+    pricing: {
+      heading: "Precios para residencias",
+      body: "Niveles listos para pilotos en EE.UU. El precio se ajusta al volumen de residentes, personal y alcance.",
+      cta: "Solicitar precios",
+      plans: seniorPricingEs,
+    },
     cta: {
       title: "Mejora tu programa de prevencion",
       body: "Ve como StrideSafe apoya seguridad y eficiencia del personal.",
