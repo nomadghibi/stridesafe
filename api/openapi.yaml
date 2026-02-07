@@ -1,0 +1,2986 @@
+openapi: 3.0.3
+info:
+  title: StrideSafe MVP API
+  version: 0.1.0
+  description: API for StrideSafe fall-prevention MVP (senior living + home health).
+servers:
+  - url: https://api.stridesafe.local
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/login:
+    post:
+      summary: Login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: clinician@stridesafe.com
+              password: password123
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              example:
+                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                user:
+                  id: "0f2f6a0e-4c4b-4f2a-9b2b-2a3b4c5d6e7f"
+                  facility_id: "a2d8c2e7-9bfe-4a9e-b4d2-9e0d7d6b2a1c"
+                  email: clinician@stridesafe.com
+                  full_name: Jordan Fields
+                  role: clinician
+                  status: active
+                  created_at: "2026-02-04T10:00:00Z"
+                  updated_at: "2026-02-04T10:00:00Z"
+
+  /auth/logout:
+    post:
+      summary: Logout
+      responses:
+        '204':
+          description: Logged out
+
+  /auth/me:
+    get:
+      summary: Get current user
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: "0f2f6a0e-4c4b-4f2a-9b2b-2a3b4c5d6e7f"
+                facility_id: "a2d8c2e7-9bfe-4a9e-b4d2-9e0d7d6b2a1c"
+                email: clinician@stridesafe.com
+                full_name: Jordan Fields
+                role: clinician
+                status: active
+                created_at: "2026-02-04T10:00:00Z"
+                updated_at: "2026-02-04T10:00:00Z"
+
+  /health:
+    get:
+      summary: Health check
+      security: []
+      responses:
+        '200':
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: ok
+                db: ok
+                uptime_seconds: 120
+                timestamp: "2026-02-04T10:00:00Z"
+        '500':
+          description: Unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: error
+                db: error
+                uptime_seconds: 120
+                timestamp: "2026-02-04T10:00:00Z"
+
+  /facilities/{id}:
+    get:
+      summary: Get facility
+      parameters:
+        - $ref: '#/components/parameters/FacilityId'
+      responses:
+        '200':
+          description: Facility
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Facility'
+              example:
+                id: "a2d8c2e7-9bfe-4a9e-b4d2-9e0d7d6b2a1c"
+                name: "Sunrise Senior Living"
+                address_line1: "410 Mission Street"
+                address_line2: "Suite 600"
+                city: "San Francisco"
+                state: "CA"
+                zip: "94105"
+                reassessment_cadence_days: 90
+        report_turnaround_hours: 24
+        qa_checklist:
+          - "Video is clear and stable"
+          - "TUG completed"
+        fall_checklist:
+          - "Vitals recorded"
+          - "Neuro check completed"
+        created_at: "2026-02-04T10:00:00Z"
+        updated_at: "2026-02-04T10:00:00Z"
+    patch:
+      summary: Update facility
+      parameters:
+        - $ref: '#/components/parameters/FacilityId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FacilityUpdate'
+      responses:
+        '200':
+          description: Facility
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Facility'
+
+  /facilities:
+    get:
+      summary: List facilities
+      responses:
+        '200':
+          description: Facilities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Facility'
+    post:
+      summary: Create facility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FacilityCreate'
+      responses:
+        '201':
+          description: Facility
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Facility'
+
+  /units:
+    get:
+      summary: List units
+      parameters:
+        - in: query
+          name: facility_id
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Units
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Unit'
+    post:
+      summary: Create unit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitCreate'
+      responses:
+        '201':
+          description: Unit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+
+  /units/{id}:
+    patch:
+      summary: Update unit
+      parameters:
+        - $ref: '#/components/parameters/UnitId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitUpdate'
+      responses:
+        '200':
+          description: Unit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+
+  /users:
+    get:
+      summary: List users
+      parameters:
+        - in: query
+          name: facility_id
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+              example:
+                - id: "0f2f6a0e-4c4b-4f2a-9b2b-2a3b4c5d6e7f"
+                  facility_id: "a2d8c2e7-9bfe-4a9e-b4d2-9e0d7d6b2a1c"
+                  email: clinician@stridesafe.com
+                  full_name: Jordan Fields
+                  role: clinician
+                  status: active
+                  created_at: "2026-02-04T10:00:00Z"
+                  updated_at: "2026-02-04T10:00:00Z"
+    post:
+      summary: Create user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+            example:
+              facility_id: "a2d8c2e7-9bfe-4a9e-b4d2-9e0d7d6b2a1c"
+              email: new.clinician@stridesafe.com
+              full_name: Alex Parker
+              role: clinician
+              status: active
+              password: "password123"
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /users/{id}:
+    patch:
+      summary: Update user
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+            example:
+              full_name: Jordan Fields, PT, DPT
+              status: active
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /residents:
+    get:
+      summary: List residents
+      parameters:
+        - in: query
+          name: facility_id
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Residents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Resident'
+              example:
+                - id: "11e5a1a0-2ed1-4d49-8f5e-9e05c0a2a5f1"
+                  facility_id: "a2d8c2e7-9bfe-4a9e-b4d2-9e0d7d6b2a1c"
+                  external_id: "MRN-1001"
+                  first_name: "Evelyn"
+                  last_name: "Rogers"
+                  dob: "1942-06-12"
+                  sex: "F"
+                  notes: "Uses walker"
+                  created_at: "2026-02-04T10:00:00Z"
+                  updated_at: "2026-02-04T10:00:00Z"
+    post:
+      summary: Create resident
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResidentCreate'
+            example:
+              facility_id: "a2d8c2e7-9bfe-4a9e-b4d2-9e0d7d6b2a1c"
+              external_id: "MRN-1002"
+              first_name: "Evelyn"
+              last_name: "Rogers"
+              dob: "1942-06-12"
+              sex: "F"
+              notes: "Uses walker"
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resident'
+
+  /residents/{id}:
+    get:
+      summary: Get resident
+      parameters:
+        - $ref: '#/components/parameters/ResidentId'
+      responses:
+        '200':
+          description: Resident
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resident'
+    patch:
+      summary: Update resident
+      parameters:
+        - $ref: '#/components/parameters/ResidentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResidentUpdate'
+            example:
+              notes: "Uses walker, left knee discomfort"
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resident'
+
+  /residents/{id}/assessments:
+    post:
+      summary: Create assessment
+      parameters:
+        - $ref: '#/components/parameters/ResidentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssessmentCreate'
+            example:
+              assessment_date: "2026-02-04"
+              assistive_device: "walker"
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assessment'
+    get:
+      summary: List assessments for resident
+      parameters:
+        - $ref: '#/components/parameters/ResidentId'
+      responses:
+        '200':
+          description: Assessments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Assessment'
+              example:
+                - id: "b0fbc0b0-6a15-47d5-8b59-4db8d9c86c41"
+                  resident_id: "11e5a1a0-2ed1-4d49-8f5e-9e05c0a2a5f1"
+                  created_by: "0f2f6a0e-4c4b-4f2a-9b2b-2a3b4c5d6e7f"
+                  status: "completed"
+                  assessment_date: "2026-02-04"
+                  assistive_device: "walker"
+                  risk_tier: "moderate"
+                  clinician_notes: "Balance unsteady during tandem"
+                  created_at: "2026-02-04T10:05:00Z"
+                  updated_at: "2026-02-04T10:15:00Z"
+
+  /residents/{id}/fall-events:
+    post:
+      summary: Create fall event
+      parameters:
+        - $ref: '#/components/parameters/ResidentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FallEventCreate'
+            example:
+              occurred_at: "2026-02-05T14:30:00Z"
+              building: "A"
+              floor: "2"
+              unit: "210"
+              room: "B"
+              injury_severity: "minor"
+              ems_called: false
+              hospital_transfer: false
+              contributing_factors: ["lighting", "footwear"]
+              notes: "Slipped near bed"
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FallEvent'
+    get:
+      summary: List fall events for resident
+      parameters:
+        - $ref: '#/components/parameters/ResidentId'
+      responses:
+        '200':
+          description: Fall events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FallEvent'
+
+  /fall-events/{id}/checks:
+    get:
+      summary: List post-fall checks
+      parameters:
+        - $ref: '#/components/parameters/FallEventId'
+      responses:
+        '200':
+          description: Post-fall checks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostFallCheck'
+    post:
+      summary: Update post-fall check
+      parameters:
+        - $ref: '#/components/parameters/FallEventId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostFallCheckUpdate'
+      responses:
+        '200':
+          description: Updated check
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostFallCheck'
+
+  /assessments/{id}:
+    get:
+      summary: Get assessment
+      parameters:
+        - $ref: '#/components/parameters/AssessmentId'
+      responses:
+        '200':
+          description: Assessment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentDetail'
+              example:
+                id: "b0fbc0b0-6a15-47d5-8b59-4db8d9c86c41"
+                resident_id: "11e5a1a0-2ed1-4d49-8f5e-9e05c0a2a5f1"
+                created_by: "0f2f6a0e-4c4b-4f2a-9b2b-2a3b4c5d6e7f"
+                status: "completed"
+                assessment_date: "2026-02-04"
+                assistive_device: "walker"
+                risk_tier: "moderate"
+                clinician_notes: "Balance unsteady during tandem"
+                scores:
+                  tug_seconds: 14.2
+                  chair_stand_seconds: 15.6
+                  balance_side_by_side: true
+                  balance_semi_tandem: true
+                  balance_tandem: false
+                  score_notes: "Tandem stance failed at 6 seconds"
+                videos:
+                  - id: "a10ff9a4-7a19-4b3e-8e4d-5b4312e1b79c"
+                    assessment_id: "b0fbc0b0-6a15-47d5-8b59-4db8d9c86c41"
+                    storage_key: "videos/2026/02/04/a10ff9a4.mp4"
+                    content_type: "video/mp4"
+                    duration_seconds: 28.5
+                    width: 1080
+                    height: 1920
+                    uploaded_by: "0f2f6a0e-4c4b-4f2a-9b2b-2a3b4c5d6e7f"
+                    created_at: "2026-02-04T10:07:00Z"
+                report:
+                  id: "cf2f8a7c-5a49-4f7d-8b1e-1f8d9c3d2b4a"
+                  assessment_id: "b0fbc0b0-6a15-47d5-8b59-4db8d9c86c41"
+                  pdf_storage_key: "reports/2026/02/04/report.pdf"
+                  created_by: "0f2f6a0e-4c4b-4f2a-9b2b-2a3b4c5d6e7f"
+                  created_at: "2026-02-04T10:16:00Z"
+                model_run:
+                  id: "f4b3f1b0-1a59-4a49-8b3d-0d3f0e4b1c7a"
+                  status: "completed"
+                  model_version: "pose_stub_v0"
+                  tug_seconds: null
+                  chair_stand_seconds: null
+                  balance_side_by_side: null
+                  balance_semi_tandem: null
+                  balance_tandem: null
+                  confidence: 0
+                  notes: "stub: model not configured"
+                  created_at: "2026-02-04T10:20:00Z"
+                  updated_at: "2026-02-04T10:20:00Z"
+    patch:
+      summary: Update assessment
+      parameters:
+        - $ref: '#/components/parameters/AssessmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssessmentUpdate'
+            example:
+              status: completed
+              assistive_device: walker
+              risk_tier: moderate
+              clinician_notes: "Balance unsteady during tandem"
+              scores:
+                tug_seconds: 14.2
+                chair_stand_seconds: 15.6
+                balance_side_by_side: true
+                balance_semi_tandem: true
+                balance_tandem: false
+                score_notes: "Tandem stance failed at 6 seconds"
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assessment'
+
+  /assessments/{id}/pt-summary:
+    get:
+      summary: Download PT summary PDF
+      parameters:
+        - $ref: '#/components/parameters/AssessmentId'
+      responses:
+        '200':
+          description: PT summary PDF
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  /assessments/{id}/assign:
+    patch:
+      summary: Assign assessment
+      parameters:
+        - $ref: '#/components/parameters/AssessmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssessmentAssignRequest'
+            example:
+              assigned_to: "me"
+      responses:
+        '200':
+          description: Assignment updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentAssignment'
+
+  /workflow/queue:
+    get:
+      summary: Workflow queue
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [all, draft, needs_review, in_review, completed]
+        - in: query
+          name: assigned
+          schema:
+            type: string
+            enum: [all, me, unassigned]
+        - in: query
+          name: assigned_to
+          schema:
+            type: string
+            description: User id, "me", or "unassigned".
+        - in: query
+          name: unit_id
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: overdue
+          schema:
+            type: boolean
+        - in: query
+          name: due_within
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: include_falls
+          schema:
+            type: boolean
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Queue entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkflowQueueItem'
+
+  /assessments/{id}/videos/presign:
+    post:
+      summary: Get presigned upload URL
+      parameters:
+        - $ref: '#/components/parameters/AssessmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoPresignRequest'
+            example:
+              content_type: "video/mp4"
+              file_name: "assessment-2026-02-04.mp4"
+              size_bytes: 18200000
+      responses:
+        '200':
+          description: Presigned URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoPresignResponse'
+              example:
+                upload_url: "http://localhost:4000/assessments/{id}/videos/upload"
+                storage_key: "videos/2026/02/04/a10ff9a4.mp4"
+                expires_in: 600
+                method: "POST"
+
+  /assessments/{id}/videos/upload:
+    post:
+      summary: Upload video (local storage)
+      parameters:
+        - $ref: '#/components/parameters/AssessmentId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                duration_seconds:
+                  type: number
+                width:
+                  type: integer
+                height:
+                  type: integer
+      responses:
+        '201':
+          description: Video created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Video'
+
+  /videos/{id}/download:
+    get:
+      summary: Download video file
+      parameters:
+        - $ref: '#/components/parameters/VideoId'
+      responses:
+        '200':
+          description: Video file
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+
+  /assessments/{id}/videos/complete:
+    post:
+      summary: Complete video upload
+      parameters:
+        - $ref: '#/components/parameters/AssessmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoCompleteRequest'
+            example:
+              storage_key: "videos/2026/02/04/a10ff9a4.mp4"
+              content_type: "video/mp4"
+              duration_seconds: 28.5
+              width: 1080
+              height: 1920
+              checksum: "md5:abcd1234"
+      responses:
+        '201':
+          description: Video created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Video'
+
+  /assessments/{id}/reports:
+    post:
+      summary: Generate report
+      parameters:
+        - $ref: '#/components/parameters/AssessmentId'
+      responses:
+        '201':
+          description: Report created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+              example:
+                id: "cf2f8a7c-5a49-4f7d-8b1e-1f8d9c3d2b4a"
+                assessment_id: "b0fbc0b0-6a15-47d5-8b59-4db8d9c86c41"
+                pdf_storage_key: "reports/2026/02/04/report.pdf"
+                created_by: "0f2f6a0e-4c4b-4f2a-9b2b-2a3b4c5d6e7f"
+                created_at: "2026-02-04T10:16:00Z"
+
+  /assessments/{id}/model/run:
+    post:
+      summary: Run gait model
+      parameters:
+        - $ref: '#/components/parameters/AssessmentId'
+      responses:
+        '201':
+          description: Queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+              example:
+                id: "f4b3f1b0-1a59-4a49-8b3d-0d3f0e4b1c7a"
+                status: "queued"
+        '400':
+          description: Video required
+        '403':
+          description: Forbidden
+        '404':
+          description: Assessment not found
+        '409':
+          description: Model already running
+
+  /assessments/{id}/qa:
+    put:
+      summary: Update QA checklist
+      parameters:
+        - $ref: '#/components/parameters/AssessmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssessmentQaUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentQa'
+        '400':
+          description: Invalid QA payload
+        '403':
+          description: Forbidden
+        '404':
+          description: Assessment not found
+
+  /qa:
+    get:
+      summary: List QA entries for resident
+      parameters:
+        - in: query
+          name: resident_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: QA entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssessmentQa'
+        '400':
+          description: Invalid resident filter
+        '403':
+          description: Forbidden
+        '404':
+          description: Resident not found
+
+  /reports/{id}/download:
+    get:
+      summary: Download report PDF
+      parameters:
+        - $ref: '#/components/parameters/ReportId'
+      responses:
+        '200':
+          description: PDF
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  /exports/residents:
+    get:
+      summary: Export residents CSV
+      parameters:
+        - in: query
+          name: facility_id
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: CSV export
+          content:
+            text/csv:
+              schema:
+                type: string
+
+  /exports/assessments:
+    get:
+      summary: Export assessments CSV
+      parameters:
+        - in: query
+          name: facility_id
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: resident_id
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, needs_review, in_review, completed]
+        - in: query
+          name: risk_tier
+          schema:
+            type: string
+            enum: [low, moderate, high]
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: assigned_to
+          schema:
+            type: string
+            description: User id or "unassigned"
+        - in: query
+          name: scheduled_from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: scheduled_to
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: due_from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: due_to
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: CSV export
+          content:
+            text/csv:
+              schema:
+                type: string
+
+  /exports/audit:
+    get:
+      summary: Export audit CSV
+      parameters:
+        - in: query
+          name: facility_id
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: action
+          schema:
+            type: string
+        - in: query
+          name: entity_type
+          schema:
+            type: string
+        - in: query
+          name: user_id
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+      responses:
+        '200':
+          description: CSV export
+          content:
+            text/csv:
+              schema:
+                type: string
+
+  /exports/bundle:
+    get:
+      summary: Export bundle zip
+      parameters:
+        - in: query
+          name: facility_id
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: include
+          description: Comma-separated list of exports (residents, assessments, audit).
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ZIP export bundle
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+
+  /exports/tokens:
+    get:
+      summary: List export tokens
+      parameters:
+        - in: query
+          name: facility_id
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+      responses:
+        '200':
+          description: Export tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExportToken'
+    post:
+      summary: Create export download token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportTokenCreate'
+            example:
+              export_type: assessments
+              facility_id: "a2d8c2e7-9bfe-4a9e-b4d2-9e0d7d6b2a1c"
+              params:
+                status: completed
+              expires_in_hours: 24
+      responses:
+        '201':
+          description: Token created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportToken'
+
+  /exports/tokens/{id}/revoke:
+    post:
+      summary: Revoke export token
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Token revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportToken'
+
+  /exports/tokens/verify:
+    get:
+      summary: Verify export token
+      security: []
+      parameters:
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Token verification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportTokenVerify'
+
+  /exports/download:
+    get:
+      summary: Download export by token
+      security: []
+      parameters:
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Export file
+          content:
+            text/csv:
+              schema:
+                type: string
+            application/zip:
+              schema:
+                type: string
+                format: binary
+
+  /export-schedules:
+    get:
+      summary: List export schedules
+      parameters:
+        - in: query
+          name: facility_id
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Export schedules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExportSchedule'
+    post:
+      summary: Create export schedule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportScheduleCreate'
+      responses:
+        '201':
+          description: Export schedule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportSchedule'
+
+  /export-schedules/{id}:
+    patch:
+      summary: Update export schedule
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportScheduleUpdate'
+      responses:
+        '200':
+          description: Export schedule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportSchedule'
+
+  /export-schedules/{id}/run:
+    post:
+      summary: Run export schedule
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Export token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportScheduleRun'
+
+  /exports/logs:
+    get:
+      summary: Export logs
+      parameters:
+        - in: query
+          name: facility_id
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: export_type
+          schema:
+            type: string
+            enum: [residents, assessments, audit, bundle, post_fall_rollup]
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+      responses:
+        '200':
+          description: Export log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExportLog'
+
+  /notifications:
+    get:
+      summary: List notifications
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [unread, read]
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+      responses:
+        '200':
+          description: Notification list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+
+  /notifications/{id}/read:
+    patch:
+      summary: Mark notification read
+      parameters:
+        - $ref: '#/components/parameters/NotificationId'
+      responses:
+        '200':
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+
+  /notifications/read-all:
+    patch:
+      summary: Mark all notifications read
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [unread, read]
+      responses:
+        '200':
+          description: Updated count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    type: integer
+
+  /analytics/summary:
+    get:
+      summary: Summary analytics
+      parameters:
+        - in: query
+          name: days
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 90
+      responses:
+        '200':
+          description: Summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsSummary'
+              example:
+                assessments_per_week: 42
+                avg_assessment_minutes: 3.2
+                reassessment_rate: 0.38
+                assessments_total: 210
+                assessments_completed: 140
+                assessments_high_risk: 35
+                videos_uploaded: 120
+                reports_generated: 110
+                video_coverage_rate: 0.57
+                report_coverage_rate: 0.52
+                avg_time_to_report_minutes: 18.5
+                assessments_due_today: 6
+                assessments_overdue: 12
+
+  /analytics/post-fall-rollup:
+    get:
+      summary: Post-fall compliance by unit
+      parameters:
+        - in: query
+          name: days
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 90
+        - in: query
+          name: unit_id
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+      responses:
+        '200':
+          description: Unit rollup
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostFallUnitRollup'
+
+  /analytics/outcomes:
+    get:
+      summary: Outcomes analytics
+      parameters:
+        - in: query
+          name: days
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 365
+        - in: query
+          name: weeks
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 26
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        '200':
+          description: Outcomes summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutcomesSummary'
+
+  /analytics/facility-rollup:
+    get:
+      summary: Facility rollup
+      responses:
+        '200':
+          description: Rollup by facility
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FacilityRollup'
+
+  /audit:
+    get:
+      summary: Audit log
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: action
+          schema:
+            type: string
+        - in: query
+          name: entity_type
+          schema:
+            type: string
+        - in: query
+          name: user_id
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Audit entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditLog'
+              example:
+                - id: "f2a4e8c1-9b93-4e2f-82a5-3f56ad2b7c9f"
+                  user_id: "0f2f6a0e-4c4b-4f2a-9b2b-2a3b4c5d6e7f"
+                  user_email: "admin@stridesafe.com"
+                  user_name: "Jordan Fields"
+                  user_role: "admin"
+                  action: "assessment.completed"
+                  entity_type: "assessment"
+                  entity_id: "b0fbc0b0-6a15-47d5-8b59-4db8d9c86c41"
+                  metadata:
+                    risk_tier: "moderate"
+                  created_at: "2026-02-04T10:16:00Z"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    FacilityId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    UserId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ResidentId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    AssessmentId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    UnitId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    FallEventId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ReportId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    VideoId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    NotificationId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    LoginResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    HealthResponse:
+      type: object
+      required: [status, db, uptime_seconds, timestamp]
+      properties:
+        status:
+          type: string
+          enum: [ok, error]
+        db:
+          type: string
+          enum: [ok, error]
+        uptime_seconds:
+          type: integer
+          minimum: 0
+        timestamp:
+          type: string
+          format: date-time
+
+    Facility:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        address_line1:
+          type: string
+        address_line2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+        reassessment_cadence_days:
+          type: integer
+        report_turnaround_hours:
+          type: integer
+        export_token_ttl_days:
+          type: integer
+        qa_checklist:
+          type: array
+          items:
+            type: string
+        fall_checklist:
+          type: array
+          items:
+            type: string
+        assessment_protocol:
+          type: string
+          enum: [tug_chair_balance, tug_only, balance_only]
+        capture_method:
+          type: string
+          enum: [record_upload, upload_only]
+        role_policy:
+          type: string
+          enum: [clinician_admin_only, admin_only]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    FacilityCreate:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        address_line1:
+          type: string
+        address_line2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+        reassessment_cadence_days:
+          type: integer
+        report_turnaround_hours:
+          type: integer
+        export_token_ttl_days:
+          type: integer
+        qa_checklist:
+          type: array
+          items:
+            type: string
+        fall_checklist:
+          type: array
+          items:
+            type: string
+        assessment_protocol:
+          type: string
+          enum: [tug_chair_balance, tug_only, balance_only]
+        capture_method:
+          type: string
+          enum: [record_upload, upload_only]
+        role_policy:
+          type: string
+          enum: [clinician_admin_only, admin_only]
+
+    FacilityUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        address_line1:
+          type: string
+        address_line2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+        reassessment_cadence_days:
+          type: integer
+        report_turnaround_hours:
+          type: integer
+        export_token_ttl_days:
+          type: integer
+        qa_checklist:
+          type: array
+          items:
+            type: string
+        fall_checklist:
+          type: array
+          items:
+            type: string
+        assessment_protocol:
+          type: string
+          enum: [tug_chair_balance, tug_only, balance_only]
+        capture_method:
+          type: string
+          enum: [record_upload, upload_only]
+        role_policy:
+          type: string
+          enum: [clinician_admin_only, admin_only]
+
+    Unit:
+      type: object
+      required: [id, facility_id, label]
+      properties:
+        id:
+          type: string
+          format: uuid
+        facility_id:
+          type: string
+          format: uuid
+        label:
+          type: string
+        building:
+          type: string
+        floor:
+          type: string
+        unit:
+          type: string
+        room:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UnitCreate:
+      type: object
+      required: [label]
+      properties:
+        facility_id:
+          type: string
+          format: uuid
+        label:
+          type: string
+        building:
+          type: string
+        floor:
+          type: string
+        unit:
+          type: string
+        room:
+          type: string
+
+    UnitUpdate:
+      type: object
+      properties:
+        label:
+          type: string
+        building:
+          type: string
+        floor:
+          type: string
+        unit:
+          type: string
+        room:
+          type: string
+
+    User:
+      type: object
+      required: [id, email, full_name, role, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        facility_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        full_name:
+          type: string
+        role:
+          type: string
+          enum: [admin, clinician]
+        status:
+          type: string
+          enum: [active, inactive]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UserCreate:
+      type: object
+      required: [facility_id, email, full_name, role, password]
+      properties:
+        facility_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        full_name:
+          type: string
+        role:
+          type: string
+          enum: [admin, clinician]
+        status:
+          type: string
+          enum: [active, inactive]
+        password:
+          type: string
+          format: password
+
+    UserUpdate:
+      type: object
+      properties:
+        full_name:
+          type: string
+        role:
+          type: string
+          enum: [admin, clinician]
+        status:
+          type: string
+          enum: [active, inactive]
+        password:
+          type: string
+          format: password
+
+    Resident:
+      type: object
+      required: [id, facility_id]
+      properties:
+        id:
+          type: string
+          format: uuid
+        facility_id:
+          type: string
+          format: uuid
+        external_id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        dob:
+          type: string
+          format: date
+        sex:
+          type: string
+        notes:
+          type: string
+        building:
+          type: string
+        floor:
+          type: string
+        unit:
+          type: string
+        room:
+          type: string
+        unit_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ResidentCreate:
+      type: object
+      required: [facility_id]
+      properties:
+        facility_id:
+          type: string
+          format: uuid
+        external_id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        dob:
+          type: string
+          format: date
+        sex:
+          type: string
+        notes:
+          type: string
+        building:
+          type: string
+        floor:
+          type: string
+        unit:
+          type: string
+        room:
+          type: string
+        unit_id:
+          type: string
+          format: uuid
+
+    ResidentUpdate:
+      type: object
+      properties:
+        external_id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        dob:
+          type: string
+          format: date
+        sex:
+          type: string
+        notes:
+          type: string
+        building:
+          type: string
+        floor:
+          type: string
+        unit:
+          type: string
+        room:
+          type: string
+        unit_id:
+          type: string
+          format: uuid
+
+    FallEvent:
+      type: object
+      required: [id, facility_id, resident_id, occurred_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        facility_id:
+          type: string
+          format: uuid
+        resident_id:
+          type: string
+          format: uuid
+        occurred_at:
+          type: string
+          format: date-time
+        building:
+          type: string
+        floor:
+          type: string
+        unit:
+          type: string
+        room:
+          type: string
+        witness:
+          type: string
+        injury_severity:
+          type: string
+          enum: [none, minor, moderate, severe]
+        ems_called:
+          type: boolean
+        hospital_transfer:
+          type: boolean
+        assistive_device:
+          type: string
+        contributing_factors:
+          type: array
+          items:
+            type: string
+        notes:
+          type: string
+        created_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        last_assessment_date:
+          type: string
+          format: date
+        last_risk_tier:
+          type: string
+          enum: [low, moderate, high]
+
+    FallEventCreate:
+      type: object
+      required: [occurred_at]
+      properties:
+        occurred_at:
+          type: string
+          format: date-time
+        building:
+          type: string
+        floor:
+          type: string
+        unit:
+          type: string
+        room:
+          type: string
+        witness:
+          type: string
+        injury_severity:
+          type: string
+          enum: [none, minor, moderate, severe]
+        ems_called:
+          type: boolean
+        hospital_transfer:
+          type: boolean
+        assistive_device:
+          type: string
+        contributing_factors:
+          type: array
+          items:
+            type: string
+        notes:
+          type: string
+
+    PostFallCheck:
+      type: object
+      required: [id, fall_event_id, check_type, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fall_event_id:
+          type: string
+          format: uuid
+        check_type:
+          type: string
+        status:
+          type: string
+          enum: [pending, completed]
+        completed_at:
+          type: string
+          format: date-time
+        completed_by:
+          type: string
+          format: uuid
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PostFallCheckUpdate:
+      type: object
+      required: [check_type, completed]
+      properties:
+        check_type:
+          type: string
+        completed:
+          type: boolean
+
+    Assessment:
+      type: object
+      required: [id, resident_id, assessment_date, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        resident_id:
+          type: string
+          format: uuid
+        created_by:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [draft, needs_review, in_review, completed, post_fall]
+        assessment_date:
+          type: string
+          format: date
+        scheduled_date:
+          type: string
+          format: date
+        due_date:
+          type: string
+          format: date
+        reassessment_due_date:
+          type: string
+          format: date
+        completed_at:
+          type: string
+          format: date-time
+        assistive_device:
+          type: string
+        risk_tier:
+          type: string
+          enum: [low, moderate, high]
+        clinician_notes:
+          type: string
+        pt_cpt_codes:
+          type: string
+        pt_goals:
+          type: string
+        pt_plan_of_care:
+          type: string
+        pt_pain_score:
+          type: integer
+        pt_session_minutes:
+          type: integer
+        pt_time_saved_minutes:
+          type: integer
+        assessment_protocol:
+          type: string
+          enum: [tug_chair_balance, tug_only, balance_only]
+        capture_method:
+          type: string
+          enum: [record_upload, upload_only]
+        assigned_to:
+          type: string
+          format: uuid
+        assigned_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        video_count:
+          type: integer
+        latest_video_at:
+          type: string
+          format: date-time
+        has_scores:
+          type: boolean
+
+    AssessmentDetail:
+      allOf:
+        - $ref: '#/components/schemas/Assessment'
+        - type: object
+          properties:
+            scores:
+              $ref: '#/components/schemas/AssessmentScore'
+            videos:
+              type: array
+              items:
+                $ref: '#/components/schemas/Video'
+            report:
+              $ref: '#/components/schemas/Report'
+            pt_summary:
+              $ref: '#/components/schemas/Report'
+            report_history:
+              type: array
+              items:
+                $ref: '#/components/schemas/Report'
+            model_run:
+              $ref: '#/components/schemas/GaitModelRun'
+
+    AssessmentCreate:
+      type: object
+      required: [assessment_date]
+      properties:
+        assessment_date:
+          type: string
+          format: date
+        scheduled_date:
+          type: string
+          format: date
+        due_date:
+          type: string
+          format: date
+        assistive_device:
+          type: string
+
+    AssessmentUpdate:
+      type: object
+      properties:
+        assessment_date:
+          type: string
+          format: date
+        scheduled_date:
+          type: string
+          format: date
+        due_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [draft, needs_review, in_review, completed, post_fall]
+        assistive_device:
+          type: string
+        risk_tier:
+          type: string
+          enum: [low, moderate, high]
+        clinician_notes:
+          type: string
+        pt_cpt_codes:
+          type: string
+        pt_goals:
+          type: string
+        pt_plan_of_care:
+          type: string
+        pt_pain_score:
+          type: integer
+        pt_session_minutes:
+          type: integer
+        pt_time_saved_minutes:
+          type: integer
+        scores:
+          $ref: '#/components/schemas/AssessmentScoreUpdate'
+
+    AssessmentAssignRequest:
+      type: object
+      properties:
+        assigned_to:
+          type: string
+          description: User id, null, or "me" to assign to the current user.
+
+    AssessmentAssignment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        assigned_to:
+          type: string
+          format: uuid
+        assigned_at:
+          type: string
+          format: date-time
+
+    WorkflowQueueItem:
+      type: object
+      properties:
+        item_type:
+          type: string
+          enum: [assessment, fall_event]
+        id:
+          type: string
+          format: uuid
+        resident_id:
+          type: string
+          format: uuid
+        occurred_at:
+          type: string
+          format: date-time
+        assessment_date:
+          type: string
+          format: date
+        scheduled_date:
+          type: string
+          format: date
+        due_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [draft, needs_review, in_review, completed]
+        injury_severity:
+          type: string
+          enum: [none, minor, moderate, severe]
+        fall_checks_required:
+          type: integer
+        fall_checks_completed:
+          type: integer
+        risk_tier:
+          type: string
+          enum: [low, moderate, high]
+        assistive_device:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        assigned_to:
+          type: string
+          format: uuid
+        assigned_at:
+          type: string
+          format: date-time
+        assigned_name:
+          type: string
+        assigned_email:
+          type: string
+        resident_first_name:
+          type: string
+        resident_last_name:
+          type: string
+        resident_external_id:
+          type: string
+        resident_unit_id:
+          type: string
+          format: uuid
+        resident_unit_label:
+          type: string
+        report_turnaround_hours:
+          type: integer
+        sla_due_at:
+          type: string
+          format: date-time
+        sla_hours_remaining:
+          type: number
+        sla_status:
+          type: string
+          enum: [on_track, overdue, unknown]
+
+    AssessmentScore:
+      type: object
+      properties:
+        tug_seconds:
+          type: number
+          minimum: 0
+          maximum: 300
+        chair_stand_seconds:
+          type: number
+          minimum: 0
+          maximum: 300
+        balance_side_by_side:
+          type: boolean
+        balance_semi_tandem:
+          type: boolean
+        balance_tandem:
+          type: boolean
+        score_notes:
+          type: string
+
+    AssessmentScoreUpdate:
+      type: object
+      properties:
+        tug_seconds:
+          type: number
+          minimum: 0
+          maximum: 300
+        chair_stand_seconds:
+          type: number
+          minimum: 0
+          maximum: 300
+        balance_side_by_side:
+          type: boolean
+        balance_semi_tandem:
+          type: boolean
+        balance_tandem:
+          type: boolean
+        score_notes:
+          type: string
+
+    AssessmentQa:
+      type: object
+      properties:
+        assessment_id:
+          type: string
+          format: uuid
+        checks:
+          type: object
+          additionalProperties:
+            type: boolean
+        notes:
+          type: string
+        escalated:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+        completed:
+          type: boolean
+
+    AssessmentQaUpdate:
+      type: object
+      properties:
+        checks:
+          type: object
+          additionalProperties:
+            type: boolean
+        notes:
+          type: string
+        escalated:
+          type: boolean
+
+    GaitModelRun:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        model_version:
+          type: string
+        tug_seconds:
+          type: number
+          nullable: true
+        chair_stand_seconds:
+          type: number
+          nullable: true
+        balance_side_by_side:
+          type: boolean
+          nullable: true
+        balance_semi_tandem:
+          type: boolean
+          nullable: true
+        balance_tandem:
+          type: boolean
+          nullable: true
+        confidence:
+          type: number
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Video:
+      type: object
+      required: [id, assessment_id, storage_key]
+      properties:
+        id:
+          type: string
+          format: uuid
+        assessment_id:
+          type: string
+          format: uuid
+        storage_key:
+          type: string
+        content_type:
+          type: string
+        duration_seconds:
+          type: number
+        width:
+          type: integer
+        height:
+          type: integer
+        checksum:
+          type: string
+        uploaded_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    VideoPresignRequest:
+      type: object
+      required: [content_type]
+      properties:
+        content_type:
+          type: string
+        file_name:
+          type: string
+        size_bytes:
+          type: integer
+
+    VideoPresignResponse:
+      type: object
+      required: [upload_url, storage_key]
+      properties:
+        upload_url:
+          type: string
+        storage_key:
+          type: string
+        expires_in:
+          type: integer
+        method:
+          type: string
+
+    VideoCompleteRequest:
+      type: object
+      required: [storage_key]
+      properties:
+        storage_key:
+          type: string
+        content_type:
+          type: string
+        duration_seconds:
+          type: number
+        width:
+          type: integer
+        height:
+          type: integer
+        checksum:
+          type: string
+
+    Report:
+      type: object
+      required: [id, assessment_id, pdf_storage_key]
+      properties:
+        id:
+          type: string
+          format: uuid
+        assessment_id:
+          type: string
+          format: uuid
+        pdf_storage_key:
+          type: string
+        report_type:
+          type: string
+          enum: [assessment, pt_summary]
+        template_version:
+          type: string
+        created_by:
+          type: string
+          format: uuid
+        generated_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        generated_at:
+          type: string
+          format: date-time
+        finalized:
+          type: boolean
+
+    AnalyticsSummary:
+      type: object
+      properties:
+        window_days:
+          type: integer
+        assessments_per_week:
+          type: integer
+        assessments_total:
+          type: integer
+        assessments_completed:
+          type: integer
+        assessments_high_risk:
+          type: integer
+        videos_uploaded:
+          type: integer
+        reports_generated:
+          type: integer
+        video_coverage_rate:
+          type: number
+        report_coverage_rate:
+          type: number
+        avg_time_to_report_minutes:
+          type: number
+        avg_assessment_minutes:
+          type: number
+        reassessment_rate:
+          type: number
+        assessments_due_today:
+          type: integer
+        assessments_overdue:
+          type: integer
+        post_fall_total:
+          type: integer
+        post_fall_required:
+          type: integer
+        post_fall_completed:
+          type: integer
+        post_fall_open:
+          type: integer
+        post_fall_overdue:
+          type: integer
+        post_fall_completion_rate:
+          type: number
+        post_fall_followup_days:
+          type: integer
+
+    PostFallUnitRollup:
+      type: object
+      properties:
+        unit_id:
+          type: string
+          format: uuid
+          nullable: true
+        unit_label:
+          type: string
+          nullable: true
+        total:
+          type: integer
+        completed:
+          type: integer
+        open:
+          type: integer
+        overdue:
+          type: integer
+        completion_rate:
+          type: number
+
+    OutcomesSummary:
+      type: object
+      properties:
+        window_days:
+          type: integer
+        weeks:
+          type: integer
+        totals:
+          type: object
+          properties:
+            residents:
+              type: integer
+            assessed_residents:
+              type: integer
+            improved:
+              type: integer
+            worsened:
+              type: integer
+            stable:
+              type: integer
+            unknown:
+              type: integer
+        trend_by_week:
+          type: array
+          items:
+            type: object
+            properties:
+              week_start:
+                type: string
+                format: date
+              low:
+                type: integer
+              moderate:
+                type: integer
+              high:
+                type: integer
+              total:
+                type: integer
+        resident_trends:
+          type: array
+          items:
+            type: object
+            properties:
+              resident_id:
+                type: string
+                format: uuid
+              first_name:
+                type: string
+              last_name:
+                type: string
+              external_id:
+                type: string
+              latest_risk:
+                type: string
+              previous_risk:
+                type: string
+              trend:
+                type: string
+              last_assessment_date:
+                type: string
+                format: date
+              assessments:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    assessment_date:
+                      type: string
+                      format: date
+                    risk_tier:
+                      type: string
+                    status:
+                      type: string
+
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        user_email:
+          type: string
+        user_name:
+          type: string
+        user_role:
+          type: string
+        action:
+          type: string
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        facility_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        type:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        data:
+          type: object
+        channel:
+          type: string
+          enum: [in_app, email, sms]
+        status:
+          type: string
+          enum: [unread, read]
+        created_at:
+          type: string
+          format: date-time
+        read_at:
+          type: string
+          format: date-time
+
+    ExportTokenCreate:
+      type: object
+      required: [export_type]
+      properties:
+        export_type:
+          type: string
+          enum: [residents, assessments, audit, bundle, post_fall_rollup]
+        facility_id:
+          type: string
+          format: uuid
+        params:
+          type: object
+          description: Optional filters for the export type.
+        expires_in_hours:
+          type: integer
+          minimum: 1
+          maximum: 720
+
+    ExportToken:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        export_type:
+          type: string
+          enum: [residents, assessments, audit, bundle, post_fall_rollup]
+        scope:
+          type: string
+        facility_id:
+          type: string
+          format: uuid
+        created_by:
+          type: string
+          format: uuid
+        params:
+          type: object
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        revoked_at:
+          type: string
+          format: date-time
+          nullable: true
+        used_at:
+          type: string
+          format: date-time
+          nullable: true
+        download_url:
+          type: string
+
+    ExportTokenVerify:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        status:
+          type: string
+          enum: [active, expired, revoked]
+        export_type:
+          type: string
+          enum: [residents, assessments, audit, bundle, post_fall_rollup]
+        scope:
+          type: string
+        facility_id:
+          type: string
+          format: uuid
+        expires_at:
+          type: string
+          format: date-time
+        revoked_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    ExportSchedule:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        facility_id:
+          type: string
+          format: uuid
+        facility_name:
+          type: string
+        created_by:
+          type: string
+          format: uuid
+        created_by_name:
+          type: string
+        name:
+          type: string
+        export_type:
+          type: string
+          enum: [residents, assessments, audit, bundle, post_fall_rollup]
+        params:
+          type: object
+        include:
+          type: array
+          items:
+            type: string
+        expires_hours:
+          type: integer
+        frequency:
+          type: string
+          enum: [daily, weekly]
+        day_of_week:
+          type: integer
+        hour:
+          type: integer
+        minute:
+          type: integer
+        status:
+          type: string
+          enum: [active, paused]
+        last_run_at:
+          type: string
+          format: date-time
+        next_run_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ExportScheduleCreate:
+      type: object
+      required: [name, export_type, frequency, hour, minute]
+      properties:
+        name:
+          type: string
+        export_type:
+          type: string
+          enum: [residents, assessments, audit, bundle, post_fall_rollup]
+        facility_id:
+          type: string
+          format: uuid
+        frequency:
+          type: string
+          enum: [daily, weekly]
+        day_of_week:
+          type: integer
+        hour:
+          type: integer
+        minute:
+          type: integer
+        status:
+          type: string
+          enum: [active, paused]
+        expires_hours:
+          type: integer
+        params:
+          type: object
+        include:
+          type: array
+          items:
+            type: string
+
+    ExportScheduleUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        export_type:
+          type: string
+          enum: [residents, assessments, audit, bundle, post_fall_rollup]
+        frequency:
+          type: string
+          enum: [daily, weekly]
+        day_of_week:
+          type: integer
+        hour:
+          type: integer
+        minute:
+          type: integer
+        status:
+          type: string
+          enum: [active, paused]
+        expires_hours:
+          type: integer
+        params:
+          type: object
+        include:
+          type: array
+          items:
+            type: string
+
+    ExportScheduleRun:
+      type: object
+      properties:
+        token_id:
+          type: string
+          format: uuid
+        download_url:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+
+    FacilityRollup:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        residents:
+          type: integer
+        assessments_total:
+          type: integer
+        assessments_completed:
+          type: integer
+        assessments_high_risk:
+          type: integer
+        assessments_due_today:
+          type: integer
+        assessments_overdue:
+          type: integer
+        reports_generated:
+          type: integer
+
+    ExportLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        export_token_id:
+          type: string
+          format: uuid
+        export_type:
+          type: string
+          enum: [residents, assessments, audit, bundle, post_fall_rollup]
+        params:
+          type: object
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time

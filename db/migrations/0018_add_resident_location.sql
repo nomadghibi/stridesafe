@@ -1,0 +1,5 @@
+ALTER TABLE residents
+  ADD COLUMN IF NOT EXISTS building text,
+  ADD COLUMN IF NOT EXISTS floor text,
+  ADD COLUMN IF NOT EXISTS unit text,
+  ADD COLUMN IF NOT EXISTS room text;

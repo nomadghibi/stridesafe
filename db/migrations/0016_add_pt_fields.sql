@@ -1,0 +1,7 @@
+ALTER TABLE assessments
+  ADD COLUMN IF NOT EXISTS pt_cpt_codes TEXT,
+  ADD COLUMN IF NOT EXISTS pt_goals TEXT,
+  ADD COLUMN IF NOT EXISTS pt_plan_of_care TEXT,
+  ADD COLUMN IF NOT EXISTS pt_pain_score INTEGER,
+  ADD COLUMN IF NOT EXISTS pt_session_minutes INTEGER,
+  ADD COLUMN IF NOT EXISTS pt_time_saved_minutes INTEGER;

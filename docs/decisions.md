@@ -1,0 +1,21 @@
+# Decisions
+
+- Documented Admin as a system-wide role because the current API allows admin users to access cross-facility resources by ID and to request exports for other facilities when `facility_id` is supplied. No behavior change in this pass to avoid regressions.
+- Export token verification is a public endpoint (`/exports/tokens/verify`) so links can be checked before download; it returns status without requiring auth.
+- Export token overrides via `expires_in_hours` are capped at 30 days for safety (`maxExportTokenHours = 720`).
+- Workflow status mapping keeps legacy statuses (`needs_review`, `in_review`, `completed`) and maps PRD stages to them to avoid breaking the UI; detailed stages will be added in a later pass.
+- Workflow SLA uses `due_date` (or `scheduled_date`/`assessment_date` fallback) and treats end-of-day as the due cutoff.
+- Report regeneration is blocked for non-admin users when a finalized report exists; admin can regenerate, which creates a new report record.
+- Gait model processing is queued via `task_queue` and uses a stub output until a real model script is configured with `GAIT_MODEL_SCRIPT`.
+- Assumed Phase 4 item 2 refers to export schedule management UI polish (edit/update + highlighted selection) based on prior roadmap context.
+- PT summaries are stored in the `reports` table using `report_type = 'pt_summary'` to avoid mixing with assessment reports.
+- Report analytics and assessment report lookups filter on `report_type = 'assessment'` so PT summaries do not inflate core metrics.
+- Onboarding progress in `localStorage` is sanitized to `{ completed, dismissed, checks }` and guarded in dev to avoid PHI/PII persistence.
+- Baseline backend tests require `DATABASE_URL` and local test ports (4103/4105). In this run they failed due to port permission errors (EPERM); re-run once the environment allows local binds.
+- Fall incidents reuse resident location fields as defaults when explicit incident location data is not supplied and honor facility `role_policy` for access control.
+- Workflow queue now includes fall incidents when post-fall checklists are incomplete; follow-up due dates default to `POST_FALL_FOLLOWUP_DAYS` (3 days if unset).
+- Analytics summary includes post-fall compliance metrics derived from facility `fall_checklist` and follow-up SLA days from `POST_FALL_FOLLOWUP_DAYS`.
+- Added `/analytics/post-fall-rollup` to break post-fall compliance down by unit; unassigned residents appear with a null unit label and an optional `unit_id` filter narrows results.
+- Workflow SLA badges use a 24-hour warning threshold (amber) between on-track and overdue.
+- Scheduled exports now support `post_fall_rollup` with optional `days` and `unit_id` params.
+- Scheduled exports can send SMTP email when `EXPORT_SCHEDULE_EMAIL_ENABLED=true` and `SMTP_HOST` is configured; otherwise payloads are written to the local outbox (`server/storage/outbox` or `EMAIL_OUTBOX_DIR`).

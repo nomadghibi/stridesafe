@@ -1,0 +1,9 @@
+node_modules/
+server/node_modules/
+dist/
+server/dist/
+.env
+server/.env
+.DS_Store
+__MACOSX/
+server/storage/
