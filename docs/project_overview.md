@@ -7,7 +7,7 @@ StrideSafe is a multi-page marketing site for a US fall-prevention platform, bui
 - `#/` Main landing page
 - `#/stridesafe-home` StrideSafe Home product page
 - `#/gait-lab` StrideSafe MotionLab product page
-- `#/pt-workflow` PT Workflow product page
+- `#/pt-workflow` StrideSafe TherapyFlow product page
 - `#/solutions/primary-care` Solution page
 - `#/solutions/senior-living` Solution page
 - `#/solutions/home-health` Solution page
@@ -18,7 +18,7 @@ StrideSafe is a multi-page marketing site for a US fall-prevention platform, bui
 - Products (dropdown)
   - StrideSafe Home
   - StrideSafe MotionLab
-  - PT Workflow
+  - StrideSafe TherapyFlow
 - Solutions (dropdown)
   - Primary Care
   - Senior Living
@@ -48,7 +48,7 @@ StrideSafe is a multi-page marketing site for a US fall-prevention platform, bui
 - Progress tracking section and FAQ
 - Dual call-to-action sections
 
-### PT Workflow (`#/pt-workflow`)
+### StrideSafe TherapyFlow (`#/pt-workflow`)
 - Workflow hero with time-saving metrics
 - Key challenges and 5-step workflow
 - Validation + contact section

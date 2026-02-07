@@ -72,7 +72,7 @@ StrideSafe is a fall-prevention platform for the US market focused on senior liv
 - Manage workflow queue (assignments, SLA tracking).
 - Export data or run scheduled exports.
 
-5. PT Workflow (Clinician)
+5. StrideSafe TherapyFlow (Clinician)
 - Select resident and assessment.
 - Upload video, capture scores.
 - Complete PT documentation (CPT, goals, plan of care, pain scale).
@@ -84,7 +84,7 @@ StrideSafe is a fall-prevention platform for the US market focused on senior liv
 **Marketing Site**
 - Multi‑page landing/product/solution pages in EN/ES.
 - About page with SEO‑ready content.
-- Products dropdown with StrideSafe Home, StrideSafe MotionLab, PT Workflow.
+- Products dropdown with StrideSafe Home, StrideSafe MotionLab, StrideSafe TherapyFlow.
 - Solutions dropdown for Primary Care, Senior Living, Home Health, Orthopedics.
 - Compliance messaging (SOC 2 Type II, HIPAA‑aligned).
 
@@ -97,7 +97,7 @@ StrideSafe is a fall-prevention platform for the US market focused on senior liv
 - Sidebar with role‑based visibility.
 - Overview panel with analytics summary.
 - Onboarding progress card with resume.
-- PT Workflow panel with guided steps, checklist, and PT documentation fields.
+- StrideSafe TherapyFlow panel with guided steps, checklist, and PT documentation fields.
 
 **Onboarding Wizard**
 - Modal stepper with checklist and progress.
@@ -129,7 +129,7 @@ StrideSafe is a fall-prevention platform for the US market focused on senior liv
 - Risk tier selection.
 - Validation and save feedback.
 
-**PT Workflow Documentation**
+**StrideSafe TherapyFlow Documentation**
 - CPT codes, goals, plan of care, pain scale.
 - Session timer and time‑saved tracking.
 - PT checklist gating PT summary export.

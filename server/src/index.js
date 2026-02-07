@@ -4191,7 +4191,7 @@ function generatePtSummaryPdf(filePath, assessment) {
     stream.on("error", reject);
     doc.pipe(stream);
 
-    doc.fontSize(20).fillColor("#0b4a3b").text("StrideSafe PT Workflow Summary", { align: "left" });
+    doc.fontSize(20).fillColor("#0b4a3b").text("StrideSafe TherapyFlow Summary", { align: "left" });
     doc.fontSize(10).fillColor("#5f6c67").text("StrideSafe — a division of Techeze AI", { align: "left" });
     doc.moveDown(0.4);
     doc.strokeColor("#d6e5e1").lineWidth(1).moveTo(48, doc.y).lineTo(548, doc.y).stroke();

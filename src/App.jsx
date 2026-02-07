@@ -480,7 +480,7 @@ const landingPillars = [
     title: "Evidence-aligned screening",
     body: "Standardize fall risk screening and intervention planning across teams.",
     path: "/pt-workflow",
-    linkLabel: "See PT Workflow",
+    linkLabel: "See StrideSafe TherapyFlow",
   },
   {
     icon: "target",
@@ -504,7 +504,7 @@ const landingPillarsEs = [
     title: "Evaluacion alineada con evidencia",
     body: "Estandariza la evaluacion de riesgo de caidas y la planificacion de intervencion.",
     path: "/pt-workflow",
-    linkLabel: "Ver Flujo PT",
+    linkLabel: "Ver StrideSafe TherapyFlow",
   },
   {
     icon: "target",
@@ -2040,7 +2040,7 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
         requestDemo: "Solicitar demo",
         productHome: "StrideSafe Home",
         productGait: "StrideSafe MotionLab",
-        productPt: "Flujo PT",
+        productPt: "StrideSafe TherapyFlow",
         productAdmin: "Consola Admin",
         solutionPrimary: "Atencion primaria",
         solutionSenior: "Residencias",
@@ -2057,7 +2057,7 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
         requestDemo: "Request a Demo",
         productHome: "StrideSafe Home",
         productGait: "StrideSafe MotionLab",
-        productPt: "PT Workflow",
+        productPt: "StrideSafe TherapyFlow",
         productAdmin: "Admin Review Console",
         solutionPrimary: "Primary Care",
         solutionSenior: "Senior Living",
@@ -2150,7 +2150,7 @@ function SiteFooter({ locale, buildHrefFor }) {
         phoneLabel: "Telefono",
         productHome: "StrideSafe Home",
         productGait: "StrideSafe MotionLab",
-        productPt: "Flujo PT",
+        productPt: "StrideSafe TherapyFlow",
         productAdmin: "Consola Admin",
       }
     : {
@@ -2169,7 +2169,7 @@ function SiteFooter({ locale, buildHrefFor }) {
         phoneLabel: "Phone",
         productHome: "StrideSafe Home",
         productGait: "StrideSafe MotionLab",
-        productPt: "PT Workflow",
+        productPt: "StrideSafe TherapyFlow",
         productAdmin: "Admin Review Console",
       };
   const certChips = locale === "es"
@@ -3291,10 +3291,10 @@ function PtWorkflowPage({ locale, buildHrefFor, currentPath }) {
 
   const copy = isEs
     ? {
-        eyebrow: "Flujo PT para residencias y atencion ambulatoria",
+        eyebrow: "StrideSafe TherapyFlow para residencias y atencion ambulatoria",
         heading: "Convierte evaluaciones PT en un flujo de 2-3 minutos",
         lead:
-          "StrideSafe PT Workflow permite evaluaciones completas de riesgo de caidas y marcha sin sacrificar precision ni tiempo de reembolso.",
+          "StrideSafe TherapyFlow permite evaluaciones completas de riesgo de caidas y marcha sin sacrificar precision ni tiempo de reembolso.",
         ctaPrimary: "Solicitar demo",
         ctaSecondary: "Ver en accion",
         timeline: "Linea de tiempo de evaluacion",
@@ -3330,7 +3330,7 @@ function PtWorkflowPage({ locale, buildHrefFor, currentPath }) {
         eyebrow: "PT workflow for senior living and outpatient care",
         heading: "Transform PT assessments into a 2-3 minute workflow",
         lead:
-          "StrideSafe PT Workflow empowers physical therapists to deliver comprehensive fall risk and gait assessments without sacrificing accuracy or reimbursement time.",
+          "StrideSafe TherapyFlow empowers physical therapists to deliver comprehensive fall risk and gait assessments without sacrificing accuracy or reimbursement time.",
         ctaPrimary: "Request a Demo",
         ctaSecondary: "See It In Action",
         timeline: "Assessment timeline",
@@ -3371,7 +3371,7 @@ function PtWorkflowPage({ locale, buildHrefFor, currentPath }) {
           <div className="hero-content">
             <div className="app-badge">
               <span className="app-badge-icon"><AppMark /></span>
-              <span>StrideSafe PT Workflow</span>
+              <span>StrideSafe TherapyFlow</span>
             </div>
             <p className="eyebrow">{copy.eyebrow}</p>
             <h1>{copy.heading}</h1>
@@ -4380,7 +4380,7 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
         navNotifications: "Notificaciones",
         navOutcomes: "Resultados",
         navWorkflow: "Workflow",
-        navPtWorkflow: "Flujo PT",
+        navPtWorkflow: "StrideSafe TherapyFlow",
         navResidents: "Residentes",
         navAssessments: "Evaluaciones",
         navIncidents: "Incidentes",
@@ -4486,7 +4486,7 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
         workflowIncidentLabel: "Seguimiento post-caida",
         workflowIncidentOpen: "Ver incidente",
         workflowChecklistLabel: "Checklist",
-        ptWorkflowTitle: "Flujo PT",
+        ptWorkflowTitle: "StrideSafe TherapyFlow",
         ptWorkflowBody: "Vista guiada del flujo PT para la evaluacion seleccionada.",
         ptWorkflowProgressLabel: "Progreso",
         ptWorkflowStepsTitle: "Pasos PT",
@@ -5027,7 +5027,7 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
         navNotifications: "Notifications",
         navOutcomes: "Outcomes",
         navWorkflow: "Workflow",
-        navPtWorkflow: "PT Workflow",
+        navPtWorkflow: "StrideSafe TherapyFlow",
         navResidents: "Residents",
         navAssessments: "Assessments",
         navIncidents: "Incidents",
@@ -5133,7 +5133,7 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
         workflowIncidentLabel: "Post-fall follow-up",
         workflowIncidentOpen: "Open incident",
         workflowChecklistLabel: "Checklist",
-        ptWorkflowTitle: "PT Workflow",
+        ptWorkflowTitle: "StrideSafe TherapyFlow",
         ptWorkflowBody: "Guided view of the PT assessment flow for the selected assessment.",
         ptWorkflowProgressLabel: "Progress",
         ptWorkflowStepsTitle: "PT steps",
