@@ -2010,8 +2010,8 @@ app.post("/facilities", authMiddleware, requireRole("admin"), asyncHandler(async
       toNullableString(zip),
       cadence.value || 90,
       reportHours.value || 24,
-      checklist.value || [],
-      fallChecklist.value || [],
+      JSON.stringify(checklist.value || []),
+      JSON.stringify(fallChecklist.value || []),
       exportTtl.value || 7,
       protocol.value || "tug_chair_balance",
       captureMethod.value || "record_upload",
@@ -2077,14 +2077,14 @@ app.patch("/facilities/:id", authMiddleware, requireRole("admin"), asyncHandler(
     if (checklist.error) {
       return res.status(400).json({ message: "Invalid QA checklist" });
     }
-    updateFields.qa_checklist = checklist.value;
+    updateFields.qa_checklist = JSON.stringify(checklist.value || []);
   }
   if (Object.prototype.hasOwnProperty.call(req.body || {}, "fall_checklist")) {
     const checklist = normalizeChecklist(req.body?.fall_checklist);
     if (checklist.error) {
       return res.status(400).json({ message: "Invalid fall checklist" });
     }
-    updateFields.fall_checklist = checklist.value;
+    updateFields.fall_checklist = JSON.stringify(checklist.value || []);
   }
   if (Object.prototype.hasOwnProperty.call(req.body || {}, "assessment_protocol")) {
     const protocol = parseOptionalEnum(req.body?.assessment_protocol, allowedAssessmentProtocols);
