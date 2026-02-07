@@ -33,6 +33,7 @@ Supported filters:
 Fall incidents:
 - When `include_falls` is enabled and no assignment/status filter is applied, the queue includes fall events with incomplete post-fall checklists.
 - Fall items use `status = post_fall` and follow-up due dates are calculated from `occurred_at` + `POST_FALL_FOLLOWUP_DAYS`.
+- Daily due scans generate notifications for post-fall follow-ups when checklists remain incomplete; overdue items escalate to admins.
 
 SLA calculations:
 - `sla_due_at` is based on `due_date` (or `scheduled_date`/`assessment_date` fallback), using end-of-day.

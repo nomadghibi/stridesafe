@@ -1148,6 +1148,97 @@ async function seedDueScanTasks() {
   );
 }
 
+async function runFallFollowupScan({ facility_id, scan_date, users }) {
+  if (!facility_id) {
+    return;
+  }
+  const scanDateValue = scan_date && parseDateOnly(scan_date) ? parseDateOnly(scan_date) : new Date();
+  if (!scanDateValue) {
+    return;
+  }
+  scanDateValue.setHours(0, 0, 0, 0);
+  const scanDateString = formatDateOnly(scanDateValue);
+  const { rows } = await pool.query(
+    `SELECT fe.id, fe.resident_id, fe.occurred_at::date AS occurred_date,
+            r.first_name, r.last_name,
+            COALESCE(jsonb_array_length(f.fall_checklist), 0) AS required_count,
+            COALESCE(done.completed_count, 0) AS completed_count
+     FROM fall_events fe
+     JOIN residents r ON r.id = fe.resident_id
+     JOIN facilities f ON f.id = fe.facility_id
+     LEFT JOIN (
+       SELECT fall_event_id, COUNT(DISTINCT check_type) AS completed_count
+       FROM post_fall_checks
+       WHERE status = 'completed'
+       GROUP BY fall_event_id
+     ) done ON done.fall_event_id = fe.id
+     WHERE fe.facility_id = $1
+     ORDER BY fe.occurred_at DESC`,
+    [facility_id]
+  );
+  if (!rows.length) {
+    return;
+  }
+
+  const recipients = Array.isArray(users) && users.length
+    ? users
+    : (await pool.query(
+      `SELECT id, role FROM users
+       WHERE facility_id = $1 AND status = 'active' AND role IN ('clinician', 'admin')`,
+      [facility_id]
+    )).rows;
+
+  await Promise.all(rows.flatMap((row) => {
+    const requiredCount = Number(row.required_count) || 0;
+    const completedCount = Number(row.completed_count) || 0;
+    if (requiredCount <= 0 || completedCount >= requiredCount) {
+      return [];
+    }
+    const occurredDate = row.occurred_date ? parseDateOnly(row.occurred_date) : null;
+    if (!occurredDate) {
+      return [];
+    }
+    occurredDate.setHours(0, 0, 0, 0);
+    const dueDate = new Date(occurredDate);
+    dueDate.setDate(dueDate.getDate() + Math.max(0, postFallFollowupDays));
+    if (dueDate > scanDateValue) {
+      return [];
+    }
+    const isOverdue = dueDate < scanDateValue;
+    const dueDateString = formatDateOnly(dueDate);
+    const residentName = `${row.first_name || ""} ${row.last_name || ""}`.trim() || "Resident";
+    const type = isOverdue ? "fall.followup.overdue" : "fall.followup.due";
+    const title = isOverdue ? "Post-fall follow-up overdue" : "Post-fall follow-up due";
+    const body = isOverdue
+      ? `${residentName} post-fall follow-up is overdue since ${dueDateString}.`
+      : `${residentName} post-fall follow-up is due on ${dueDateString}.`;
+    const data = {
+      fall_event_id: row.id,
+      resident_id: row.resident_id,
+      resident_name: residentName,
+      due_date: dueDateString,
+      status: isOverdue ? "overdue" : "due",
+      required_checks: requiredCount,
+      completed_checks: completedCount,
+      scan_date: scanDateString,
+    };
+    const eventKeyBase = `${type}:${row.id}:${dueDateString}`;
+    const targetUsers = isOverdue
+      ? recipients.filter((user) => user.role === "admin")
+      : recipients;
+    const finalTargets = targetUsers.length ? targetUsers : recipients;
+    return finalTargets.map((user) => createNotification({
+      facilityId: facility_id,
+      userId: user.id,
+      type,
+      title,
+      body,
+      data,
+      eventKey: `${eventKeyBase}:${user.id}`,
+    }));
+  }));
+}
+
 async function runDueAssessmentScan({ facility_id, scan_date }) {
   if (!facility_id) {
     return;
@@ -1181,7 +1272,7 @@ async function runDueAssessmentScan({ facility_id, scan_date }) {
   }
 
   const { rows: userRows } = await pool.query(
-    `SELECT id FROM users WHERE facility_id = $1 AND status = 'active' AND role IN ('clinician', 'admin')`,
+    `SELECT id, role FROM users WHERE facility_id = $1 AND status = 'active' AND role IN ('clinician', 'admin')`,
     [facility_id]
   );
 
@@ -1212,6 +1303,8 @@ async function runDueAssessmentScan({ facility_id, scan_date }) {
       eventKey: `${eventKeyBase}:${user.id}`,
     }));
   }));
+
+  await runFallFollowupScan({ facility_id, scan_date: scanDate, users: userRows });
 }
 
 async function processTaskQueue() {

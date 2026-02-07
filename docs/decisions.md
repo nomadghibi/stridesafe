@@ -16,6 +16,7 @@
 - Workflow queue now includes fall incidents when post-fall checklists are incomplete; follow-up due dates default to `POST_FALL_FOLLOWUP_DAYS` (3 days if unset).
 - Analytics summary includes post-fall compliance metrics derived from facility `fall_checklist` and follow-up SLA days from `POST_FALL_FOLLOWUP_DAYS`.
 - Added `/analytics/post-fall-rollup` to break post-fall compliance down by unit; unassigned residents appear with a null unit label and an optional `unit_id` filter narrows results.
+- Daily due scans also generate post-fall follow-up notifications (due and overdue), with overdue items escalating to admins.
 - Workflow SLA badges use a 24-hour warning threshold (amber) between on-track and overdue.
 - Scheduled exports now support `post_fall_rollup` with optional `days` and `unit_id` params.
 - Scheduled exports can send SMTP email when `EXPORT_SCHEDULE_EMAIL_ENABLED=true` and `SMTP_HOST` is configured; otherwise payloads are written to the local outbox (`server/storage/outbox` or `EMAIL_OUTBOX_DIR`).
