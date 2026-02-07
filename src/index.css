@@ -1500,6 +1500,47 @@ input {
   color: var(--muted);
 }
 
+.demo-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.demo-copy {
+  display: grid;
+  gap: 16px;
+}
+
+.demo-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 18px 40px rgba(15, 31, 43, 0.1);
+  display: grid;
+  gap: 12px;
+}
+
+.demo-card-light {
+  background: #f7fbff;
+  box-shadow: none;
+}
+
+.demo-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  display: grid;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .demo-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .portal-user {
   display: grid;
   gap: 8px;

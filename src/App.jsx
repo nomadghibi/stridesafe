@@ -1942,6 +1942,12 @@ function usePageMeta(locale, route) {
               "Inicia sesiones clinicas, carga video, captura pruebas TUG y balance, y genera reportes de riesgo de caidas listos para documentacion.",
           },
           {
+            match: (value) => value.startsWith("/request-demo"),
+            title: "Solicitar demo | StrideSafe",
+            description:
+              "Agenda una demo de StrideSafe para residencias, salud en el hogar, PT ambulatorio u ortopedia.",
+          },
+          {
             match: (value) => value.startsWith("/privacy"),
             title: "Privacidad de datos | StrideSafe",
             description:
@@ -2002,6 +2008,12 @@ function usePageMeta(locale, route) {
             title: "Clinician Portal | StrideSafe",
             description:
               "Log in, upload video, capture TUG and balance scores, and generate fall-risk reports in the StrideSafe clinician portal.",
+          },
+          {
+            match: (value) => value.startsWith("/request-demo"),
+            title: "Request a Demo | StrideSafe",
+            description:
+              "Schedule a StrideSafe demo for senior living, home health, outpatient PT, or orthopedics.",
           },
           {
             match: (value) => value.startsWith("/privacy"),
@@ -2291,7 +2303,9 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
               </button>
             </div>
           </div>
-          <button className="button primary" type="button">{navCopy.requestDemo}</button>
+          <a className="button primary" href={buildHrefFor("/request-demo")}>
+            {navCopy.requestDemo}
+          </a>
         </nav>
       </div>
     </header>
@@ -2542,7 +2556,7 @@ function LandingPage({ locale, buildHrefFor, currentPath }) {
             <h1>{copy.heading}</h1>
             <p className="lead">{copy.lead}</p>
             <div className="cta-row">
-              <button className="button primary" type="button">{copy.ctaPrimary}</button>
+              <a className="button primary" href={buildHrefFor("/request-demo")}>{copy.ctaPrimary}</a>
               <button className="button ghost" type="button">{copy.ctaSecondary}</button>
             </div>
             <div className="landing-stats">
@@ -2884,8 +2898,8 @@ function StrideSafeHomePage({ locale, buildHrefFor, currentPath }) {
             <h1>{copy.heading}</h1>
             <p className="lead">{copy.lead}</p>
             <div className="cta-row">
-              <button className="button primary" type="button">{copy.ctaPrimary}</button>
-              <button className="button ghost" type="button">{copy.ctaSecondary}</button>
+              <a className="button primary" href={buildHrefFor("/request-demo")}>{copy.ctaPrimary}</a>
+              <a className="button ghost" href={buildHrefFor("/request-demo")}>{copy.ctaSecondary}</a>
             </div>
             <div className="store-row">
               <button className="store-button" type="button">{copy.storeApple}</button>
@@ -2957,7 +2971,7 @@ function StrideSafeHomePage({ locale, buildHrefFor, currentPath }) {
             <h2>{copy.introHeading}</h2>
             <p>{copy.introBody1}</p>
             <p>{copy.introBody2}</p>
-            <button className="button primary" type="button">{copy.introCta}</button>
+            <a className="button primary" href={buildHrefFor("/request-demo")}>{copy.introCta}</a>
           </div>
           <div className="split-visual">
             <div className="visual-card">
@@ -3071,7 +3085,7 @@ function StrideSafeHomePage({ locale, buildHrefFor, currentPath }) {
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
-                <button className="button primary" type="button">{copy.pricingCta}</button>
+                <a className="button primary" href={buildHrefFor("/request-demo")}>{copy.pricingCta}</a>
               </div>
             ))}
           </div>
@@ -3231,8 +3245,8 @@ function GaitLabPage({ locale, buildHrefFor, currentPath }) {
             <h1>{copy.heading}</h1>
             <p className="lead">{copy.lead}</p>
             <div className="cta-row">
-              <button className="button primary" type="button">{copy.ctaPrimary}</button>
-              <button className="button ghost" type="button">{copy.ctaSecondary}</button>
+              <a className="button primary" href={buildHrefFor("/request-demo")}>{copy.ctaPrimary}</a>
+              <a className="button ghost" href={buildHrefFor("/request-demo")}>{copy.ctaSecondary}</a>
             </div>
             <div className="stat-row">
               {stats.map((stat) => (
@@ -3344,7 +3358,7 @@ function GaitLabPage({ locale, buildHrefFor, currentPath }) {
                 <span key={benefit} className="pill">{benefit}</span>
               ))}
             </div>
-            <button className="button primary" type="button">{copy.splitCta}</button>
+            <a className="button primary" href={buildHrefFor("/request-demo")}>{copy.splitCta}</a>
           </div>
           <div className="split-visual">
             <div className="visual-card">
@@ -3377,7 +3391,7 @@ function GaitLabPage({ locale, buildHrefFor, currentPath }) {
                 <li key={point}>{point}</li>
               ))}
             </ul>
-            <button className="button ghost" type="button">{copy.progressCta}</button>
+            <a className="button ghost" href={buildHrefFor("/request-demo")}>{copy.progressCta}</a>
           </div>
           <div className="split-visual">
             <div className="progress-card">
@@ -3413,7 +3427,7 @@ function GaitLabPage({ locale, buildHrefFor, currentPath }) {
             <h2>{copy.calloutTitle}</h2>
             <p>{copy.calloutBody}</p>
           </div>
-          <button className="button primary" type="button">{copy.calloutButton}</button>
+          <a className="button primary" href={buildHrefFor("/request-demo")}>{copy.calloutButton}</a>
         </div>
       </section>
 
@@ -3439,7 +3453,7 @@ function GaitLabPage({ locale, buildHrefFor, currentPath }) {
             <h2>{copy.finalTitle}</h2>
             <p>{copy.finalBody}</p>
           </div>
-          <button className="button ghost" type="button">{copy.finalButton}</button>
+          <a className="button ghost" href={buildHrefFor("/request-demo")}>{copy.finalButton}</a>
         </div>
       </section>
     </Layout>
@@ -3541,8 +3555,8 @@ function PtWorkflowPage({ locale, buildHrefFor, currentPath }) {
             <h1>{copy.heading}</h1>
             <p className="lead">{copy.lead}</p>
             <div className="cta-row">
-              <button className="button primary" type="button">{copy.ctaPrimary}</button>
-              <button className="button ghost" type="button">{copy.ctaSecondary}</button>
+              <a className="button primary" href={buildHrefFor("/request-demo")}>{copy.ctaPrimary}</a>
+              <a className="button ghost" href={buildHrefFor("/request-demo")}>{copy.ctaSecondary}</a>
             </div>
             <div className="stat-row">
               {highlights.map((stat) => (
@@ -3656,7 +3670,7 @@ function PtWorkflowPage({ locale, buildHrefFor, currentPath }) {
             <h2>{copy.calloutTitle}</h2>
             <p>{copy.calloutBody}</p>
           </div>
-          <button className="button primary" type="button">{copy.calloutButton}</button>
+          <a className="button primary" href={buildHrefFor("/request-demo")}>{copy.calloutButton}</a>
         </div>
       </section>
 
@@ -4509,7 +4523,271 @@ function AboutPage({ locale, buildHrefFor, currentPath }) {
             <h2>{copy.calloutTitle}</h2>
             <p>{copy.calloutBody}</p>
           </div>
-          <button className="button ghost" type="button">{copy.calloutButton}</button>
+          <a className="button ghost" href={buildHrefFor("/request-demo")}>{copy.calloutButton}</a>
+        </div>
+      </section>
+    </Layout>
+  );
+}
+
+function DemoRequestPage({ locale, buildHrefFor, currentPath }) {
+  const isEs = locale === "es";
+  const copy = isEs
+    ? {
+        badge: "Solicitud de demo",
+        eyebrow: "Vive la plataforma StrideSafe",
+        heading: "Agenda una demo y adapta StrideSafe a tu flujo clinico.",
+        lead:
+          "Comparte tus datos y te guiaremos en una demo enfocada en residencias, salud en el hogar, PT ambulatorio u ortopedia.",
+        formTitle: "Solicitar demo",
+        formBody: "Nuestro equipo responde en 1 dia habil.",
+        nameLabel: "Nombre completo",
+        emailLabel: "Correo laboral",
+        orgLabel: "Instalacion / organizacion",
+        roleLabel: "Rol",
+        rolePlaceholder: "Selecciona tu rol",
+        roleOptions: [
+          { value: "admin", label: "Administrador" },
+          { value: "clinician", label: "Clinico / PT" },
+          { value: "ops", label: "Operaciones / QAPI" },
+          { value: "exec", label: "Director / Lider" },
+          { value: "other", label: "Otro" },
+        ],
+        marketLabel: "Mercado",
+        marketPlaceholder: "Selecciona un mercado",
+        marketOptions: [
+          { value: "senior-living", label: "Residencias" },
+          { value: "home-health", label: "Salud en el hogar" },
+          { value: "outpatient-pt", label: "PT ambulatorio" },
+          { value: "orthopedics", label: "Ortopedia" },
+          { value: "other", label: "Otro" },
+        ],
+        phoneLabel: "Telefono (opcional)",
+        sizeLabel: "Tamano / camas (opcional)",
+        notesLabel: "Notas (opcional)",
+        submit: "Solicitar demo",
+        submitBusy: "Enviando...",
+        success: "Gracias. Te contactaremos en 1 dia habil.",
+        error: "Completa nombre, correo, organizacion, rol y mercado.",
+        benefitsTitle: "Que recibiras",
+        benefits: [
+          "Flujo clinico adaptado a tu programa",
+          "Resumen de ROI y compliance",
+          "Plan de piloto y siguientes pasos",
+        ],
+      }
+    : {
+        badge: "Demo request",
+        eyebrow: "Experience StrideSafe",
+        heading: "Schedule a demo tailored to your clinical workflow.",
+        lead:
+          "Share your details and we’ll walk you through StrideSafe for senior living, home health, outpatient PT, or orthopedics.",
+        formTitle: "Request a demo",
+        formBody: "Our team responds within 1 business day.",
+        nameLabel: "Full name",
+        emailLabel: "Work email",
+        orgLabel: "Facility / organization",
+        roleLabel: "Role",
+        rolePlaceholder: "Select your role",
+        roleOptions: [
+          { value: "admin", label: "Administrator" },
+          { value: "clinician", label: "Clinician / PT" },
+          { value: "ops", label: "Operations / QAPI" },
+          { value: "exec", label: "Executive / Leader" },
+          { value: "other", label: "Other" },
+        ],
+        marketLabel: "Market",
+        marketPlaceholder: "Select a market",
+        marketOptions: [
+          { value: "senior-living", label: "Senior living" },
+          { value: "home-health", label: "Home health" },
+          { value: "outpatient-pt", label: "Outpatient PT" },
+          { value: "orthopedics", label: "Orthopedics" },
+          { value: "other", label: "Other" },
+        ],
+        phoneLabel: "Phone (optional)",
+        sizeLabel: "Size / beds (optional)",
+        notesLabel: "Notes (optional)",
+        submit: "Request a demo",
+        submitBusy: "Submitting...",
+        success: "Thanks. We’ll reach out within 1 business day.",
+        error: "Please complete name, email, organization, role, and market.",
+        benefitsTitle: "What you get",
+        benefits: [
+          "A workflow aligned to your program",
+          "ROI + compliance overview",
+          "Pilot plan and next steps",
+        ],
+      };
+
+  const [form, setForm] = useState({
+    full_name: "",
+    email: "",
+    organization: "",
+    role: "",
+    market: "",
+    phone: "",
+    size: "",
+    notes: "",
+  });
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    setError("");
+    setSuccess("");
+    const required = ["full_name", "email", "organization", "role", "market"];
+    const missing = required.some((field) => !form[field].trim());
+    if (missing) {
+      setError(copy.error);
+      return;
+    }
+    setBusy(true);
+    window.setTimeout(() => {
+      setBusy(false);
+      setSuccess(copy.success);
+      setForm({
+        full_name: "",
+        email: "",
+        organization: "",
+        role: "",
+        market: "",
+        phone: "",
+        size: "",
+        notes: "",
+      });
+    }, 400);
+  };
+
+  return (
+    <Layout locale={locale} buildHrefFor={buildHrefFor} currentPath={currentPath}>
+      <section className="hero demo-hero">
+        <div className="hero-glow" />
+        <div className="container demo-grid">
+          <div className="demo-copy">
+            <div className="app-badge">
+              <span className="app-badge-icon"><AppMark /></span>
+              <span>{copy.badge}</span>
+            </div>
+            <p className="eyebrow">{copy.eyebrow}</p>
+            <h1>{copy.heading}</h1>
+            <p className="lead">{copy.lead}</p>
+            <div className="demo-card demo-card-light">
+              <h3>{copy.benefitsTitle}</h3>
+              <ul className="demo-list">
+                {copy.benefits.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="demo-card">
+            <h2>{copy.formTitle}</h2>
+            <p className="text-muted">{copy.formBody}</p>
+            <form className="portal-form" onSubmit={handleSubmit}>
+              <div className="portal-edit-grid">
+                <div className="portal-field">
+                  <label htmlFor="demo-name">{copy.nameLabel}</label>
+                  <input
+                    id="demo-name"
+                    type="text"
+                    autoComplete="name"
+                    value={form.full_name}
+                    onChange={(event) => setForm((prev) => ({ ...prev, full_name: event.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="portal-field">
+                  <label htmlFor="demo-email">{copy.emailLabel}</label>
+                  <input
+                    id="demo-email"
+                    type="email"
+                    autoComplete="email"
+                    value={form.email}
+                    onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="portal-field">
+                  <label htmlFor="demo-org">{copy.orgLabel}</label>
+                  <input
+                    id="demo-org"
+                    type="text"
+                    autoComplete="organization"
+                    value={form.organization}
+                    onChange={(event) => setForm((prev) => ({ ...prev, organization: event.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="portal-field">
+                  <label htmlFor="demo-role">{copy.roleLabel}</label>
+                  <select
+                    id="demo-role"
+                    value={form.role}
+                    onChange={(event) => setForm((prev) => ({ ...prev, role: event.target.value }))}
+                    required
+                  >
+                    <option value="">{copy.rolePlaceholder}</option>
+                    {copy.roleOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="portal-field">
+                  <label htmlFor="demo-market">{copy.marketLabel}</label>
+                  <select
+                    id="demo-market"
+                    value={form.market}
+                    onChange={(event) => setForm((prev) => ({ ...prev, market: event.target.value }))}
+                    required
+                  >
+                    <option value="">{copy.marketPlaceholder}</option>
+                    {copy.marketOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="portal-field">
+                  <label htmlFor="demo-phone">{copy.phoneLabel}</label>
+                  <input
+                    id="demo-phone"
+                    type="tel"
+                    autoComplete="tel"
+                    value={form.phone}
+                    onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
+                  />
+                </div>
+                <div className="portal-field">
+                  <label htmlFor="demo-size">{copy.sizeLabel}</label>
+                  <input
+                    id="demo-size"
+                    type="text"
+                    value={form.size}
+                    onChange={(event) => setForm((prev) => ({ ...prev, size: event.target.value }))}
+                  />
+                </div>
+                <div className="portal-field portal-field-full">
+                  <label htmlFor="demo-notes">{copy.notesLabel}</label>
+                  <textarea
+                    id="demo-notes"
+                    value={form.notes}
+                    onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))}
+                  />
+                </div>
+              </div>
+              {error ? <div className="portal-message portal-error">{error}</div> : null}
+              {success ? <div className="portal-message portal-success">{success}</div> : null}
+              <button className="button primary" type="submit" disabled={busy}>
+                {busy ? copy.submitBusy : copy.submit}
+              </button>
+            </form>
+          </div>
         </div>
       </section>
     </Layout>
@@ -15627,7 +15905,7 @@ function SolutionsPage({ title, eyebrow, summary, highlights, metrics, cta, loca
             <h2>{cta.title}</h2>
             <p>{cta.body}</p>
           </div>
-          <button className="button primary" type="button">{cta.primary}</button>
+          <a className="button primary" href={buildHrefFor("/request-demo")}>{cta.primary}</a>
         </div>
       </section>
     </Layout>
@@ -16160,6 +16438,16 @@ export default function App() {
   if (normalizedRoute.startsWith("/about")) {
     return (
       <AboutPage
+        locale={locale}
+        buildHrefFor={buildHrefFor}
+        currentPath={normalizedRoute}
+      />
+    );
+  }
+
+  if (normalizedRoute.startsWith("/request-demo")) {
+    return (
+      <DemoRequestPage
         locale={locale}
         buildHrefFor={buildHrefFor}
         currentPath={normalizedRoute}
