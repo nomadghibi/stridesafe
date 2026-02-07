@@ -2037,6 +2037,7 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
         solutions: "Soluciones",
         about: "Acerca de",
         portal: "Portal clinico",
+        login: "Iniciar sesion",
         requestDemo: "Solicitar demo",
         productHome: "StrideSafe Home",
         productGait: "StrideSafe MotionLab",
@@ -2054,6 +2055,7 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
         solutions: "Solutions",
         about: "About",
         portal: "Portal",
+        login: "Login",
         requestDemo: "Request a Demo",
         productHome: "StrideSafe Home",
         productGait: "StrideSafe MotionLab",
@@ -2109,6 +2111,7 @@ function SiteHeader({ locale, buildHrefFor, currentPath }) {
           </div>
           <a href={buildHrefFor("/about")} className="nav-link">{navCopy.about}</a>
           <a href={buildHrefFor("/portal")} className="nav-link">{navCopy.portal}</a>
+          <a href={buildHrefFor("/portal")} className="nav-link">{navCopy.login}</a>
           <div className="language-tags" role="group" aria-label="Languages">
             {[
               { code: "en", label: "English" },
