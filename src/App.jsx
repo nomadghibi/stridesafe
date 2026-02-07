@@ -11710,14 +11710,14 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
                                       </div>
                                       <div className="portal-status">
                                         {followupBadge ? (
-                                          <>
+                                          <div className="portal-status-stack">
                                             <span className={`status-pill ${followupBadge.className}`} title={followupBadge.due}>
                                               {followupBadge.label}
                                             </span>
                                             <span className="portal-meta">
                                               {copy.workflowDueLabel}: {followupBadge.due}
                                             </span>
-                                          </>
+                                          </div>
                                         ) : null}
                                         {event.ems_called ? (
                                           <span className="status-pill status-review">EMS</span>

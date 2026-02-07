@@ -2340,6 +2340,13 @@ input {
   justify-content: flex-end;
 }
 
+.portal-status-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
 .portal-form {
   display: grid;
   gap: 12px;
