@@ -2815,9 +2815,18 @@ app.get("/residents/:id/fall-events", authMiddleware, asyncHandler(async (req, r
     `SELECT fe.id, fe.facility_id, fe.resident_id, fe.occurred_at, fe.building, fe.floor, fe.unit, fe.room,
             fe.witness, fe.injury_severity, fe.ems_called, fe.hospital_transfer, fe.assistive_device,
             fe.contributing_factors, fe.notes, fe.created_by, fe.created_at, fe.updated_at,
+            COALESCE(jsonb_array_length(f.fall_checklist), 0) AS fall_checks_required,
+            COALESCE(done.completed_count, 0) AS fall_checks_completed,
             last_assessment.assessment_date AS last_assessment_date,
             last_assessment.risk_tier AS last_risk_tier
      FROM fall_events fe
+     JOIN facilities f ON f.id = fe.facility_id
+     LEFT JOIN (
+       SELECT fall_event_id, COUNT(DISTINCT check_type) AS completed_count
+       FROM post_fall_checks
+       WHERE status = 'completed'
+       GROUP BY fall_event_id
+     ) done ON done.fall_event_id = fe.id
      LEFT JOIN LATERAL (
        SELECT assessment_date, risk_tier
        FROM assessments
@@ -2914,9 +2923,18 @@ app.post("/residents/:id/fall-events", authMiddleware, asyncHandler(async (req, 
             inserted.witness, inserted.injury_severity, inserted.ems_called, inserted.hospital_transfer,
             inserted.assistive_device, inserted.contributing_factors, inserted.notes, inserted.created_by,
             inserted.created_at, inserted.updated_at,
+            COALESCE(jsonb_array_length(f.fall_checklist), 0) AS fall_checks_required,
+            COALESCE(done.completed_count, 0) AS fall_checks_completed,
             last_assessment.assessment_date AS last_assessment_date,
             last_assessment.risk_tier AS last_risk_tier
      FROM inserted
+     JOIN facilities f ON f.id = inserted.facility_id
+     LEFT JOIN (
+       SELECT fall_event_id, COUNT(DISTINCT check_type) AS completed_count
+       FROM post_fall_checks
+       WHERE status = 'completed'
+       GROUP BY fall_event_id
+     ) done ON done.fall_event_id = inserted.id
      LEFT JOIN LATERAL (
        SELECT assessment_date, risk_tier
        FROM assessments

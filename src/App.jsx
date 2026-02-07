@@ -4698,6 +4698,8 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
         incidentChecklistEmpty: "No hay items configurados.",
         incidentChecklistPending: "Pendiente",
         incidentChecklistDone: "Completado",
+        incidentFollowupDue: "Seguimiento pendiente",
+        incidentFollowupOverdue: "Seguimiento atrasado",
         incidentLinkedAssessment: "Ultima evaluacion",
         incidentLinkedRisk: "Riesgo",
         fallCheckVitals: "Signos vitales registrados",
@@ -5343,6 +5345,8 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
         incidentChecklistEmpty: "No checklist items configured.",
         incidentChecklistPending: "Pending",
         incidentChecklistDone: "Complete",
+        incidentFollowupDue: "Follow-up due",
+        incidentFollowupOverdue: "Follow-up overdue",
         incidentLinkedAssessment: "Latest assessment",
         incidentLinkedRisk: "Risk",
         fallCheckVitals: "Vitals recorded",
@@ -6608,6 +6612,9 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
   const analyticsPostFallOverdue = analyticsData?.post_fall_overdue ?? 0;
   const analyticsPostFallCompletion = analyticsData?.post_fall_completion_rate ?? 0;
   const analyticsPostFallFollowupDays = analyticsData?.post_fall_followup_days;
+  const fallFollowupDays = Number.isFinite(Number(analyticsPostFallFollowupDays))
+    ? Math.max(0, Number(analyticsPostFallFollowupDays))
+    : 3;
   const postFallRollupRows = postFallRollup.map((item, index) => {
     const unitLabel = item.unit_label || copy.analyticsPostFallUnitUnassigned;
     const completionRate = Number.isFinite(item.completion_rate) ? item.completion_rate : 0;
@@ -8850,7 +8857,20 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
           completed: nextCompleted,
         },
       });
-      setFallEventChecks((prev) => ({ ...prev, [checkType]: updated }));
+      setFallEventChecks((prev) => {
+        const next = { ...prev, [checkType]: updated };
+        const completedCount = fallChecklistItems.filter((item) => next[item]?.status === "completed").length;
+        setFallEvents((events) => events.map((event) => (
+          event.id === selectedFallEventId
+            ? {
+                ...event,
+                fall_checks_completed: completedCount,
+                fall_checks_required: event.fall_checks_required ?? fallChecklistItems.length,
+              }
+            : event
+        )));
+        return next;
+      });
     } catch (error) {
       handleApiError(error, setFallEventError);
     } finally {
@@ -11637,6 +11657,29 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
                               <div className="portal-list portal-list-tall">
                                 {fallEvents.map((event) => {
                                   const locationLabel = formatFallEventLocation(event);
+                                  const requiredChecks = Number.isFinite(Number(event.fall_checks_required))
+                                    ? Number(event.fall_checks_required)
+                                    : fallChecklistItems.length;
+                                  const completedChecks = Number.isFinite(Number(event.fall_checks_completed))
+                                    ? Number(event.fall_checks_completed)
+                                    : 0;
+                                  let followupBadge = null;
+                                  if (requiredChecks > 0 && completedChecks < requiredChecks && event.occurred_at) {
+                                    const occurredDate = new Date(event.occurred_at);
+                                    if (!Number.isNaN(occurredDate.getTime())) {
+                                      const dueDate = new Date(occurredDate);
+                                      dueDate.setHours(0, 0, 0, 0);
+                                      dueDate.setDate(dueDate.getDate() + fallFollowupDays);
+                                      const today = new Date();
+                                      today.setHours(0, 0, 0, 0);
+                                      const overdue = dueDate < today;
+                                      followupBadge = {
+                                        label: overdue ? copy.incidentFollowupOverdue : copy.incidentFollowupDue,
+                                        className: overdue ? "status-escalated" : "status-open",
+                                        due: formatDate(dueDate),
+                                      };
+                                    }
+                                  }
                                   return (
                                     <button
                                       key={event.id}
@@ -11666,6 +11709,11 @@ function PortalPage({ locale, buildHrefFor, currentPath }) {
                                         </div>
                                       </div>
                                       <div className="portal-status">
+                                        {followupBadge ? (
+                                          <span className={`status-pill ${followupBadge.className}`} title={followupBadge.due}>
+                                            {followupBadge.label}
+                                          </span>
+                                        ) : null}
                                         {event.ems_called ? (
                                           <span className="status-pill status-review">EMS</span>
                                         ) : null}
